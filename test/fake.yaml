@@ -1,0 +1,17 @@
+compile:
+  dependencies:
+    - main.c
+  target: main.o
+  run: gcc -c main.c -o main.o
+
+build:
+  dependencies:
+    - compile
+    - file.txt
+  target: main
+  run: gcc main.o -o main
+
+exec:
+  dependencies:
+    - build
+  run: ./main

@@ -1,0 +1,3 @@
+# Project exclude paths
+/cmake-build-debug-msvc-2022/
+/cmake-build-release-msvc-2022/
