@@ -101,7 +101,7 @@ Task::Status Task::getStatus() const
     if (enqueued_)
         return Status::ENQUEUED;
 
-    if (!has_task_dependencies_ && !has_file_dependencies_ || !time_.has_value() || file_updated_ || task_updated_)
+    if ((!has_task_dependencies_ && !has_file_dependencies_) || !time_.has_value() || file_updated_ || task_updated_)
         return Status::NEEDS_UPDATING;
 
     if (has_task_dependencies_ || has_file_dependencies_)
@@ -125,7 +125,7 @@ bool operator<(Task const& lhs, Task const& rhs)
     return lhs.time_.value() < rhs.time_.value();
 }
 
-bool Task::checkTaskDependency(Task::task_ptr const& task)
+void Task::checkTaskDependency(Task::task_ptr const& task)
 {
     // We believe that we depend on `task`
     has_task_dependencies_ = true;
@@ -133,7 +133,6 @@ bool Task::checkTaskDependency(Task::task_ptr const& task)
     if (task->getStatus() == Status::ENQUEUED || *this < *task) {
         task_updated_ = true;
     }
-
 }
 
 std::string const& Task::run() const

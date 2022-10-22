@@ -8,12 +8,6 @@
 
 #include <yaml-cpp/yaml.h>
 
-/*
- * Needs reordering...
- *
- * Should have pointer to the dependant and not to dependencies....
- */
-
 class Task {
 public:
     using task_ptr = std::shared_ptr<Task>;
@@ -31,7 +25,7 @@ public:
     void setRun(std::string const& str);
 
     bool checkFileDependency(std::string const& file_name);
-    bool checkTaskDependency(const task_ptr& task);
+    void checkTaskDependency(const task_ptr& task);
 
     [[nodiscard]] Status getStatus() const;
     void setEnqueued(bool = true);

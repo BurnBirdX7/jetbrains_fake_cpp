@@ -1,8 +1,9 @@
+#include <cstdlib>
 #include <iostream>
 #include <string>
+
 #include <yaml-cpp/yaml.h>
 
-#include "Task.hpp"
 #include "TaskBuilder.hpp"
 
 const auto CONFIG_FILE = "./fake.yaml";
@@ -32,12 +33,17 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    std::cout << "Execution queue:\n";
+    std::cout << "Execution:\n";
     for (auto const& task : builder.getExecutionQueue()) {
-        std::cout << "  [" << task->name() << "] cmd: " << task->run() << '\n';
+        std::cout << "  [" << task->name() << "] cmd: " << task->run() << std::endl;
+
+        auto ret = std::system(task->run().c_str());
+        if (ret != 0) {
+            std::cerr << "\nTask failed!\n";
+            return -1;
+        }
+
     }
-
-
 
     return 0;
 }
