@@ -3,7 +3,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "Task.hpp"
-
+#include "TaskBuilder.hpp"
 
 const auto CONFIG_FILE = "./fake.yaml";
 
@@ -24,33 +24,20 @@ int main(int argc, char** argv)
     }
 
     auto node = YAML::LoadFile(CONFIG_FILE);
-    std::list<std::string> dep_stack{};
 
-    try {
-        Task task = Task::task_from_yaml(argv[1], node, dep_stack);
-        std::cout << task;
+    auto builder = TaskBuilder(node);
+    builder.build(argv[1]);
+    if (builder.failed()) {
+        std::cerr << builder;
+        return -1;
     }
-    catch (CyclicDependency const& error) {
-        std::cerr << error.what() << "\n";
-        std::cerr << "dependency stack:\n";
-        std::cerr << "  * " << error.get_target_name() << '\n';
-        for (auto const& dep : dep_stack) {
-            std::cerr << "  - " << dep << "\n";
-        }
-        return -2;
+
+    std::cout << "Execution queue:\n";
+    for (auto const& task : builder.getExecutionQueue()) {
+        std::cout << "  [" << task->name() << "] cmd: " << task->run() << '\n';
     }
-    catch (TargetError const& error) {
-        std::cerr << error.get_target_name() << ":\t" << error.what();
-        return -2;
-    }
-    catch (std::runtime_error const& error) {
-        std::cerr << "Error occurred:\n  " << error.what() << "\n";
-        return -2;
-    }
-    catch (...) {
-        std::cerr << "Unexpected error\n";
-        return -3;
-    }
+
+
 
     return 0;
 }

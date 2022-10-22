@@ -8,34 +8,52 @@
 
 #include <yaml-cpp/yaml.h>
 
+/*
+ * Needs reordering...
+ *
+ * Should have pointer to the dependant and not to dependencies....
+ */
+
 class Task {
 public:
+    using task_ptr = std::shared_ptr<Task>;
     using time_type = std::filesystem::file_time_type;
     using path = std::filesystem::path;
-    using file_dep = std::pair<path, time_type>;
-    using dep_stack = std::list<std::string>;
+    using dep_list = std::list<std::string>;
+
+    enum class Status {
+        UNKNOWN, UP_TO_DATE, NEEDS_UPDATING, ENQUEUED
+    };
 
     explicit Task(std::string name);
 
     void setTarget(std::string const& target);
     void setRun(std::string const& str);
-    void addDependency(std::string const& name, YAML::Node const& doc, dep_stack&);
 
-    [[nodiscard]] bool ok() const;
+    bool checkFileDependency(std::string const& file_name);
+    bool checkTaskDependency(const task_ptr& task);
 
-    static Task task_from_yaml(std::string const& name, YAML::Node const& node, dep_stack&);
+    [[nodiscard]] Status getStatus() const;
+    void setEnqueued(bool = true);
 
-    friend std::ostream& operator<<(std::ostream& out, Task const& task);
+    [[nodiscard]] std::string const& name() const;
+    [[nodiscard]] std::string const& run() const;
+    // TODO: Other getters
 
+    static std::pair<task_ptr, dep_list> task_from_yaml(std::string const& name, YAML::Node const& node);
+    friend bool operator<(Task const& lhs, Task const& rhs); // returns true if
 
 private:
     std::string name_   = {};
     std::string run_    = {};
     path target_        = {};
     std::optional<time_type> time_ = {};
-    std::list<file_dep> file_deps_ = {};
-    std::list<Task> task_deps_ = {};
 
+    bool enqueued_ = false;
+    bool has_file_dependencies_ = false;
+    bool has_task_dependencies_ = false;
+    bool file_updated_ = false;
+    bool task_updated_ = false;
 };
 
 

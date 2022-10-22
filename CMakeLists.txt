@@ -9,6 +9,6 @@ endif()
 
 find_package(yaml-cpp)
 
-add_executable(jetbrains_fake_cpp main.cpp Task.cpp Task.hpp)
+add_executable(jetbrains_fake_cpp main.cpp Task.cpp Task.hpp TaskBuilder.cpp TaskBuilder.hpp proc_exec.hpp)
 
 target_link_libraries(jetbrains_fake_cpp PRIVATE yaml-cpp)

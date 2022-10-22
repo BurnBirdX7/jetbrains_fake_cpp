@@ -27,24 +27,23 @@ Task::Task(std::string name)
     : name_(std::move(name))
 {}
 
-void Task::addDependency(std::string const& name, YAML::Node const& doc, dep_stack& stack)
+bool Task::checkFileDependency(std::string const& file_name)
 {
-    auto node = doc[name];
-    if (!node.IsDefined()) {
-        // Dependency is not listed in the doc
-        // Check if it is a file
-
-        if (!std::filesystem::exists(name)) { // There's no such file...
-            throw TargetError("There's no such task or file", name);
-        }
-
-        file_deps_.emplace_back(name, std::filesystem::last_write_time(name));
+    if (!std::filesystem::exists(file_name)) { // There's no such file...
+        return false;
     }
-    else {
-        // Dependency is listed in the doc:
-        task_deps_.emplace_back(Task::task_from_yaml(name, doc, stack));
+
+    has_file_dependencies_ = true;
+
+    if (time_.has_value() &&
+        time_.value() < std::filesystem::last_write_time(file_name))
+    {
+        file_updated_ = true;
     }
+
+    return true;
 }
+
 
 void Task::setTarget(std::string const& target)
 {
@@ -62,18 +61,8 @@ void Task::setRun(std::string const& str)
     run_ = str;
 }
 
-bool Task::ok() const
+std::pair<Task::task_ptr, std::list<std::string>> Task::task_from_yaml(std::string const& name, YAML::Node const& doc)
 {
-    return !(run_.empty() || name_.empty() || target_.empty());
-}
-
-Task Task::task_from_yaml(std::string const& name, YAML::Node const& doc, dep_stack& stack)
-{
-    if (std::find(stack.begin(), stack.end(), name) != stack.end()) {
-        throw CyclicDependency(name);
-    }
-    stack.push_front(name);
-
     auto node = doc[name];
     if (!node.IsDefined())
         throw std::runtime_error("task_from_yaml: there's no such task");
@@ -82,45 +71,74 @@ Task Task::task_from_yaml(std::string const& name, YAML::Node const& doc, dep_st
         throw std::runtime_error("task_from_yaml: Target description should contain Map");
 
     // WORK WITH OUR TASK:
-    auto task = Task(name);
+    auto task = std::make_shared<Task>(name);
 
     auto target = node[TAGT];
     if (target.IsDefined())
-        task.setTarget(target.as<std::string>());
+        task->setTarget(target.as<std::string>());
 
     auto run_str = node[RUN];
     if (!run_str.IsDefined())
         throw std::runtime_error("task_from_yaml: run MUST be defined");
-    task.setRun(run_str.as<std::string>());
+    task->setRun(run_str.as<std::string>());
 
     auto deps = node[DEPS];
+    auto list = dep_list{};
     if (deps.IsSequence())
         for (auto const& dep : deps)
-            task.addDependency(dep.as<std::string>(), doc, stack);
+            list.push_back(dep.as<std::string>());
 
-    stack.pop_front();
-    return task;
+    return {task, list};
 }
 
-std::ostream& operator<<(std::ostream& out, Task const& task)
+std::string const& Task::name() const
 {
-    out << "* " << task.name_ << "\n";
-    if (!task.target_.empty())
-        out << "  target:  " << task.target_ << "\n";
-    out << "  run:     " << task.run_ << "\n";
+    return name_;
+}
 
-    if (task.time_.has_value()) {
-        auto t = to_time_t(task.time_.value());
-        out << "  updated: " << std::ctime(&t);
+Task::Status Task::getStatus() const
+{
+    if (enqueued_)
+        return Status::ENQUEUED;
+
+    if (!has_task_dependencies_ && !has_file_dependencies_ || !time_.has_value() || file_updated_ || task_updated_)
+        return Status::NEEDS_UPDATING;
+
+    if (has_task_dependencies_ || has_file_dependencies_)
+        return Status::UP_TO_DATE;
+
+    return Status::UNKNOWN;
+}
+
+void Task::setEnqueued(bool b)
+{
+    enqueued_ = b;
+}
+
+
+bool operator<(Task const& lhs, Task const& rhs)
+{
+    // If we cannot compare the two, we just assume that rhs is updated and lhs is not
+    if (!lhs.time_.has_value() || !rhs.time_.has_value())
+        return true;
+
+    return lhs.time_.value() < rhs.time_.value();
+}
+
+bool Task::checkTaskDependency(Task::task_ptr const& task)
+{
+    // We believe that we depend on `task`
+    has_task_dependencies_ = true;
+
+    if (task->getStatus() == Status::ENQUEUED || *this < *task) {
+        task_updated_ = true;
     }
 
-    if (!task.task_deps_.empty()) {
-        out << "  dependencies:\n";
-        for (auto const& dep : task.task_deps_)
-            out << "    " << dep.name_ << '\n';
-    }
+}
 
-    return out << '\n';
+std::string const& Task::run() const
+{
+    return run_;
 }
 
 TargetError::TargetError(std::string const& msg, std::string name)
