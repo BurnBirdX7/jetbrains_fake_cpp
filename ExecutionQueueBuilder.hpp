@@ -4,6 +4,7 @@
 #include <list>
 #include <string>
 #include <map>
+#include <functional>
 
 #include <yaml-cpp/yaml.h>
 
