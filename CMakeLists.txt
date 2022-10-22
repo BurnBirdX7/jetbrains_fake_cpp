@@ -18,7 +18,7 @@ find_package(yaml-cpp)
 
 set(SRC main.cpp
         Task.cpp Task.hpp
-        TaskBuilder.cpp TaskBuilder.hpp)
+        ExecutionQueueBuilder.cpp ExecutionQueueBuilder.hpp)
 
 add_executable(jetbrains_fake_cpp ${SRC})
 

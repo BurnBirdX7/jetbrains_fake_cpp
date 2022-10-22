@@ -4,7 +4,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "TaskBuilder.hpp"
+#include "ExecutionQueueBuilder.hpp"
 
 const auto CONFIG_FILE = "./fake.yaml";
 
@@ -32,23 +32,24 @@ int main(int argc, char** argv)
 
     auto node = YAML::LoadFile(CONFIG_FILE);
 
-    auto builder = TaskBuilder(node);
+    auto builder = ExecutionQueueBuilder(node);
     builder.build(argv[1]);
     if (builder.failed()) {
         std::cerr << builder;
         return DEPENDENCY_ERROR;
     }
 
-    std::cout << "Execution:\n";
-    for (auto const& task : builder.getExecutionQueue()) {
-        std::cout << " > " << task << std::endl; // Force output with `endl`
+    auto executor = [](Task::ptr const& task) -> int {
+        std::cout << " > " << task << std::endl; // Force output before execution of cmd to avoid
+        return std::system(task->cmd().c_str());
+    };
 
-        auto ret = std::system(task->cmd().c_str());
-        if (ret != 0) {
-            std::cerr << "Task failed!";
-            return EXECUTION_ERROR;
-        }
+    if (builder.execute(executor)) {
+        std::cerr << "Task failed...\n";
+        return EXECUTION_ERROR;
     }
+
+    std::cout << "Finished!\n";
 
     return OK;
 }

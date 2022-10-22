@@ -49,10 +49,8 @@ private:
     std::optional<time_type> time_ = {};
 
     // Information about dependencies
-    bool has_file_dependencies_ = false;
-    bool has_task_dependencies_ = false;
-    bool file_updated_ = false;
-    bool task_updated_ = false;
+    bool has_dependencies_ = false;
+    bool dependency_is_updated_ = false;
     bool enqueued_ = false;
 };
 

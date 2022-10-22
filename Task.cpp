@@ -41,12 +41,12 @@ bool Task::checkFileDependency(std::string const& file_name)
         return false;
     }
 
-    has_file_dependencies_ = true;
+    has_dependencies_ = true;
 
     if (time_.has_value() &&
         time_.value() < std::filesystem::last_write_time(file_name))
     {
-        file_updated_ = true;
+        dependency_is_updated_ = true;
     }
 
     return true;
@@ -55,10 +55,10 @@ bool Task::checkFileDependency(std::string const& file_name)
 void Task::checkTaskDependency(Task::ptr const& task)
 {
     // We believe that we depend on `task`
-    has_task_dependencies_ = true;
+    has_dependencies_ = true;
 
     if (task->status() == Status::ENQUEUED || *this < *task) {
-        task_updated_ = true;
+        dependency_is_updated_ = true;
     }
 }
 
@@ -67,10 +67,10 @@ Task::Status Task::status() const
     if (enqueued_)
         return Status::ENQUEUED;
 
-    if ((!has_task_dependencies_ && !has_file_dependencies_) || !time_.has_value() || file_updated_ || task_updated_)
+    if (!has_dependencies_ || !time_.has_value() || dependency_is_updated_)
         return Status::NEEDS_UPDATING;
 
-    if (has_task_dependencies_ || has_file_dependencies_)
+    if (has_dependencies_)
         return Status::UP_TO_DATE;
 
     return Status::UNKNOWN;
