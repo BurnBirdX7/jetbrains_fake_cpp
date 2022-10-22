@@ -10,10 +10,10 @@ Execute `fake` in directory with `fake.yaml` and target task.
  * task-name
    * "`run`": command that is executed when target is out of date
    * "`dependencies`" (optional): contains **one** dependency or **list** of dependencies\
-     If dependencies not specified, task is executed unconditionally
+     If **dependencies** not specified, task will be executed if `target` file doesn't exist
    * "`target`" (optional): contains name of target file that will be produced
     after successful execution of this task\
-    If target isn't specified, task is executed unconditionally
+    If **target** isn't specified, task is executed unconditionally
 
 Example:
 ```yaml
@@ -49,21 +49,22 @@ exec:
 
 
 ## Build
-
-To build this project we need [`jbeder/yaml-cpp`](https://github.com/jbeder/yaml-cpp) - library for work with YAML
-
 **Requirements**:
- * CMake >= 3.16
- * git
- * `g++`/`clang` on Linux, MSVC on Windows
+* CMake 3.16+
+    * Build tool with [CMake generator](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html) (Make, Ninja, etc.)
+* C/C++ Compiler
+    * gcc 5.0+ / clang 5.0+ on Linux
+    * MSVC 2015+ on Windows
 
-There are 3 options:
-1. You already have `yaml-cpp` in your system, findable with CMake's `find_package`
-2. You have C++ package manager that has cmake toolchain
-3. You have none of that
 
-### Option #1 
+**Also:**
+ * [`jbeder/yaml-cpp`](https://github.com/jbeder/yaml-cpp) - library for work with YAML
+ * [`google/googletest`](https://github.com/google/googletest) - unit-test library for C++
 
+If you have C++ package manager that has these packages **and** cmake toolchain, you can use it (see **CMake Toolchain**) \
+If `jbeder/yaml-cpp` and `google/googletest` cannot be found on your system, they are downloaded from GitHub
+
+### Default Way
 
 **Sub-option 1 (Linux only)**
 ```shell
@@ -78,9 +79,10 @@ cmake ..
 cmake --build .
 ```
 
-### Option #2
+### CMake Toolchain
 [ Tested only with vcpkg ]\
-Install `yaml-cpp` with your package manager. For example `vcpkg install yaml-cpp:x64-linux`.
+Install `yaml-cpp` with your package manager. For example `vcpkg install yaml-cpp:x64-linux`.\
+install `googletest`. For example `vcpkg install gtest:x64-linux`.
 
 Build `fake`:
 
@@ -97,26 +99,4 @@ cd build
 cmake -DCMAKE_TOOLCHAIN_FILE="/path/to/toolchain/file" ..
 cmake --build .
 ```
-
-### Option #3
-
-In this case `yaml-cpp` is build as subdir project
-
-**Sub-option 1 (Linux only)**
-```shell
-./build.sh build-yaml
-```
-For vcpkg it's `[VCPKG_ROOT]/scripts/buildsystems/vcpkg.cmake"`
-
-**Sub-option 2**\
-I'm sorry
-```shell
-git clone "https://github.com/jbeder/yaml-cpp"
-mkdir build
-cd build
-cmake -DYAML_IS_SUBDIR ..
-cmake --build .
-```
-
-
 

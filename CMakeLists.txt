@@ -3,14 +3,15 @@ project(jetbrains_fake_cpp)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SRC main.cpp
-        Task.cpp Task.hpp
-        ExecutionQueueBuilder.cpp ExecutionQueueBuilder.hpp)
+set(SRC src/Task.cpp src/Task.hpp
+        src/ExecutionQueueBuilder.cpp src/ExecutionQueueBuilder.hpp)
 
-add_executable(fake ${SRC})
+add_executable(fake src/main.cpp ${SRC})
 
+# COMPILER SETUP
 if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX /Od")
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 else()
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
         set(CMAKE_CXX_FLAGS "-Wall -Werror -O0 -g -fsanitize=address")
@@ -19,28 +20,22 @@ else()
     endif()
 endif()
 
-if (YAML_IS_SUBDIR)
-    message("YAML_IS_SUBDIR is defined...")
-    add_subdirectory(yaml-cpp)
-    target_link_libraries(fake PRIVATE yaml-cpp)
 
-elseif(YAML_IS_EXTERNAL)  # it doesn't work but you can try...
-    include(ExternalProject)
-    message("YAML_IS_EXTERNAL is defined...")
-    set(EXTERNAL_DIR ${CMAKE_BINARY_DIR}/external)
-    ExternalProject_Add(yaml-cpp
-            GIT_REPOSITORY "https://github.com/jbeder/yaml-cpp"
-            CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_DIR}
-            STEP_TARGETS yaml-cpp)
-
-    include_directories(${EXTERNAL_DIR}/include)
-    target_link_directories(fake PRIVATE ${EXTERNAL_DIR}/lib)
-    add_dependencies(fake yaml-cpp)
-
-else()
-    message("Special flags are not specified...")
-    find_package(yaml-cpp)
-    target_link_libraries(fake PRIVATE yaml-cpp)
+# YAML
+find_package(yaml-cpp QUIET)
+if(NOT yaml-cpp_FOUND)
+    message(WARNING "yaml-cpp not found! Fetching...")
+    include(FetchContent)
+    FetchContent_Declare(
+            yaml-cpp
+            GIT_REPOSITORY "https://github.com/jbeder/yaml-cpp.git"
+            GIT_TAG 1b50109f7bea60bd382d8ea7befce3d2bd67da5f
+    )
+    FetchContent_MakeAvailable(yaml-cpp)
 endif()
 
+# GTest
+add_subdirectory(gtest)
+
+target_link_libraries(fake PRIVATE yaml-cpp)
 

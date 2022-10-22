@@ -67,8 +67,11 @@ Task::Status Task::status() const
     if (enqueued_)
         return Status::ENQUEUED;
 
-    if (!has_dependencies_ || !time_.has_value() || dependency_is_updated_)
+    if (!time_.has_value() || dependency_is_updated_) // No target or there's updated dep
         return Status::NEEDS_UPDATING;
+
+    if (!has_dependencies_ && time_.has_value()) // No deps, but target exists
+        return Status::UP_TO_DATE;
 
     if (has_dependencies_)
         return Status::UP_TO_DATE;
