@@ -8,7 +8,7 @@ TaskBuilder::TaskBuilder(YAML::Node const& doc)
 
 void TaskBuilder::build(std::string const& task_name)
 {
-    Task::task_ptr root_task{};
+    task_ptr root_task{};
     Task::dep_list root_deps{};
 
     try {
@@ -58,12 +58,12 @@ void TaskBuilder::build(std::string const& task_name)
 
 }
 
-bool TaskBuilder::fixStack(Task::task_ptr const& parent, std::string const& child_name)
+bool TaskBuilder::fixStack(task_ptr const& parent, std::string const& child_name)
 {
     while(!dependence_stack_.empty() && dependence_stack_.front() != parent) {
         auto front = constructed_tasks_[dependence_stack_.front()->name()];
 
-        if (front->getStatus() == Task::Status::NEEDS_UPDATING) {
+        if (front->status() == Task::Status::NEEDS_UPDATING) {
             execution_queue_.push_back(front);
             front->setEnqueued();
         }
@@ -73,7 +73,7 @@ bool TaskBuilder::fixStack(Task::task_ptr const& parent, std::string const& chil
             dependence_stack_.front()->checkTaskDependency(front);
     }
 
-    auto pred = [child_name] (Task::task_ptr const& task) {
+    auto pred = [child_name] (task_ptr const& task) {
         return task->name() == child_name;
     };
 
@@ -99,9 +99,8 @@ void TaskBuilder::addTask(std::string const& name)
         }
     }
     catch (std::runtime_error const& err) {
-        addError(name, err.what()); // TODO: Replace std::runtime error with custom exception
+        addError(name, err.what());
     }
-
 }
 
 TaskBuilder::exec_queue const& TaskBuilder::getExecutionQueue() const

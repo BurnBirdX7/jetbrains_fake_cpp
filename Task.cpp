@@ -4,28 +4,36 @@
 #include <iostream>
 
 // Useful strings
-const auto DEPS = "dependencies";
-const auto TAGT = "target";
-const auto RUN = "run";
-
-
-/*
- * to_time_t
- * based on: https://stackoverflow.com/questions/61030383/how-to-convert-stdfilesystemfile-time-type-to-time-t
- */
-template <typename TP>
-std::time_t to_time_t(TP tp)
-{
-    using namespace std::chrono;
-    auto sctp = time_point_cast<system_clock::duration>(tp - TP{}
-                                                        + system_clock::time_point{});
-    return system_clock::to_time_t(sctp);
-}
+const auto DEPS_KEYWORD = "dependencies";
+const auto TARGET_KEYWORD = "target";
+const auto CMD_KEYWORD  = "run";
 
 
 Task::Task(std::string name)
     : name_(std::move(name))
 {}
+
+void Task::setTarget(std::string const& target)
+{
+    target_ = target;
+
+    if (std::filesystem::exists(target_))
+        time_ = std::filesystem::last_write_time(target_);
+    else
+        time_ = std::nullopt;
+
+}
+
+void Task::setCmd(std::string const& str)
+{
+    cmd_ = str;
+}
+
+void Task::setEnqueued(bool b)
+{
+    enqueued_ = b;
+}
+
 
 bool Task::checkFileDependency(std::string const& file_name)
 {
@@ -44,59 +52,17 @@ bool Task::checkFileDependency(std::string const& file_name)
     return true;
 }
 
-
-void Task::setTarget(std::string const& target)
+void Task::checkTaskDependency(Task::ptr const& task)
 {
-    target_ = target;
+    // We believe that we depend on `task`
+    has_task_dependencies_ = true;
 
-    if (std::filesystem::exists(target_))
-        time_ = std::filesystem::last_write_time(target_);
-    else
-        time_ = std::nullopt;
-
+    if (task->status() == Status::ENQUEUED || *this < *task) {
+        task_updated_ = true;
+    }
 }
 
-void Task::setRun(std::string const& str)
-{
-    run_ = str;
-}
-
-std::pair<Task::task_ptr, std::list<std::string>> Task::task_from_yaml(std::string const& name, YAML::Node const& doc)
-{
-    auto node = doc[name];
-    if (!node.IsDefined())
-        throw std::runtime_error("task_from_yaml: there's no such task");
-
-    if (!node.IsMap())
-        throw std::runtime_error("task_from_yaml: Target description should contain Map");
-
-    // WORK WITH OUR TASK:
-    auto task = std::make_shared<Task>(name);
-
-    auto target = node[TAGT];
-    if (target.IsDefined())
-        task->setTarget(target.as<std::string>());
-
-    auto run_str = node[RUN];
-    if (!run_str.IsDefined())
-        throw std::runtime_error("task_from_yaml: run MUST be defined");
-    task->setRun(run_str.as<std::string>());
-
-    auto deps = node[DEPS];
-    auto list = dep_list{};
-    if (deps.IsSequence())
-        for (auto const& dep : deps)
-            list.push_back(dep.as<std::string>());
-
-    return {task, list};
-}
-
-std::string const& Task::name() const
-{
-    return name_;
-}
-
-Task::Status Task::getStatus() const
+Task::Status Task::status() const
 {
     if (enqueued_)
         return Status::ENQUEUED;
@@ -110,11 +76,59 @@ Task::Status Task::getStatus() const
     return Status::UNKNOWN;
 }
 
-void Task::setEnqueued(bool b)
+std::string const& Task::name() const
 {
-    enqueued_ = b;
+    return name_;
 }
 
+std::string const& Task::cmd() const
+{
+    return cmd_;
+}
+
+std::filesystem::path const& Task::target() const
+{
+    return target_;
+}
+
+std::optional<Task::time_type> const& Task::time() const
+{
+    return time_;
+}
+
+std::pair<Task::ptr, std::list<std::string>> Task::task_from_yaml(std::string const& name, YAML::Node const& doc)
+{
+    auto node = doc[name];
+    if (!node.IsDefined())
+        throw std::runtime_error("There's no task with this name");
+
+    if (!node.IsMap())
+        throw std::runtime_error("Target description should contain Map");
+
+    // WORK WITH OUR TASK:
+    auto task = std::make_shared<Task>(name);
+
+    auto target = node[TARGET_KEYWORD];
+    if (target.IsScalar())
+        task->setTarget(target.as<std::string>());
+
+    auto run_str = node[CMD_KEYWORD];
+    if (!run_str.IsScalar())
+        throw std::runtime_error("`run` property MUST be defined");
+    task->setCmd(run_str.as<std::string>());
+
+    auto deps = node[DEPS_KEYWORD];
+
+    if (deps.IsScalar())
+        return {task, {deps.as<std::string>()}};
+
+    auto list = dep_list{};
+    if (deps.IsSequence())
+        for (auto const& dep : deps)
+            list.push_back(dep.as<std::string>());
+
+    return {task, list};
+}
 
 bool operator<(Task const& lhs, Task const& rhs)
 {
@@ -125,32 +139,7 @@ bool operator<(Task const& lhs, Task const& rhs)
     return lhs.time_.value() < rhs.time_.value();
 }
 
-void Task::checkTaskDependency(Task::task_ptr const& task)
+std::ostream& operator<<(std::ostream& out, Task::ptr const& task)
 {
-    // We believe that we depend on `task`
-    has_task_dependencies_ = true;
-
-    if (task->getStatus() == Status::ENQUEUED || *this < *task) {
-        task_updated_ = true;
-    }
+    return out << "[" << task->name_ << "]: " << task->cmd_;
 }
-
-std::string const& Task::run() const
-{
-    return run_;
-}
-
-TargetError::TargetError(std::string const& msg, std::string name)
-    : std::runtime_error(msg)
-    , target_name_(std::move(name))
-{
-}
-
-std::string const& TargetError::get_target_name() const
-{
-    return target_name_;
-}
-
-CyclicDependency::CyclicDependency(std::string name)
-    : TargetError("Cyclic dependency detected", std::move(name))
-{}

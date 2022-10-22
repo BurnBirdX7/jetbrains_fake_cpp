@@ -11,11 +11,11 @@ class TaskBuilder {
 public:
     using error_log = std::list<std::string>;
 
-    using dep_stack = std::list<Task::task_ptr>;
-    using dep_queue = std::list<std::pair<std::string /* task/file */, Task::task_ptr /* dependant */>>;
-    using task_map = std::map<std::string /*name*/, Task::task_ptr /*task*/>;
-
-    using exec_queue = std::list<Task::task_ptr>;
+    using task_ptr = Task::ptr;
+    using dep_stack = std::list<task_ptr>;
+    using dep_queue = std::list<std::pair<std::string /* task/file */, task_ptr /* dependant/parent */>>;
+    using task_map = std::map<std::string /*name*/, task_ptr /*task*/>;
+    using exec_queue = std::list<task_ptr>;
 
     explicit TaskBuilder(YAML::Node const& doc);
 
@@ -28,12 +28,11 @@ public:
 
 
 private:
-    bool fixStack(Task::task_ptr const& parent, std::string const& child_name);
+    bool fixStack(task_ptr const& parent, std::string const& child_name);
     void addTask(std::string const& name);
     void addError(std::string const& task_name, std::string const& msg);
 
     YAML::Node const& doc_;
-    Task::task_ptr target_;
 
     dep_queue queue_;
     dep_stack dependence_stack_;

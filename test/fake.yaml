@@ -1,15 +1,14 @@
 compile:
-  dependencies:
-    - main.c
+  dependencies: main.cpp
   target: main.o
-  run: gcc -c main.c -o main.o
+  run: g++ -c main.cpp -o main.o
 
 build:
   dependencies:
     - compile
     - file.txt
   target: main
-  run: gcc main.o -o main
+  run: g++ main.o -o main
 
 exec:
   dependencies:

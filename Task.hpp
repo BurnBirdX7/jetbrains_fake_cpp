@@ -10,7 +10,8 @@
 
 class Task {
 public:
-    using task_ptr = std::shared_ptr<Task>;
+    // Definitions:
+    using ptr = std::shared_ptr<Task>;
     using time_type = std::filesystem::file_time_type;
     using path = std::filesystem::path;
     using dep_list = std::list<std::string>;
@@ -21,50 +22,38 @@ public:
 
     explicit Task(std::string name);
 
+    // Change state:
     void setTarget(std::string const& target);
-    void setRun(std::string const& str);
-
-    bool checkFileDependency(std::string const& file_name);
-    void checkTaskDependency(const task_ptr& task);
-
-    [[nodiscard]] Status getStatus() const;
+    void setCmd(std::string const& str);
     void setEnqueued(bool = true);
 
-    [[nodiscard]] std::string const& name() const;
-    [[nodiscard]] std::string const& run() const;
-    // TODO: Other getters
+    bool checkFileDependency(std::string const& file_name);
+    void checkTaskDependency(const ptr& task);
 
-    static std::pair<task_ptr, dep_list> task_from_yaml(std::string const& name, YAML::Node const& node);
-    friend bool operator<(Task const& lhs, Task const& rhs); // returns true if
+    [[nodiscard]] Status status() const;
+
+    [[nodiscard]] std::string const& name() const;
+    [[nodiscard]] std::string const& cmd() const;
+    [[nodiscard]] path const& target() const;
+    [[nodiscard]] std::optional<time_type> const& time() const;
+
+    static std::pair<ptr, dep_list> task_from_yaml(std::string const& name, YAML::Node const& node);
+    friend bool operator<(Task const& lhs, Task const& rhs);
+    friend std::ostream& operator<<(std::ostream& out, ptr const& task);
 
 private:
+    // General information about the task
     std::string name_   = {};
-    std::string run_    = {};
+    std::string cmd_    = {};
     path target_        = {};
     std::optional<time_type> time_ = {};
 
-    bool enqueued_ = false;
+    // Information about dependencies
     bool has_file_dependencies_ = false;
     bool has_task_dependencies_ = false;
     bool file_updated_ = false;
     bool task_updated_ = false;
-};
-
-
-class TargetError
-    : public std::runtime_error {
-public:
-    TargetError(std::string const& msg, std::string name);
-    [[nodiscard]] std::string const& get_target_name() const;
-
-private:
-    std::string target_name_;
-};
-
-class CyclicDependency
-        : public TargetError {
-public:
-    explicit CyclicDependency(std::string name);
+    bool enqueued_ = false;
 };
 
 
