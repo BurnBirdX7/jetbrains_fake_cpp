@@ -24,7 +24,7 @@ if (YAML_IS_SUBDIR)
     add_subdirectory(yaml-cpp)
     target_link_libraries(fake PRIVATE yaml-cpp)
 
-elseif(YAML_IS_EXTERNAL)
+elseif(YAML_IS_EXTERNAL)  # it doesn't work but you can try...
     include(ExternalProject)
     message("YAML_IS_EXTERNAL is defined...")
     set(EXTERNAL_DIR ${CMAKE_BINARY_DIR}/external)

@@ -43,7 +43,7 @@ exec:
 ~/my_project$ rm ./main
 ~/my_project$ fake exec  # Will execute `compile` and `exec`
 
-~/my_project$ frm ./main.o
+~/my_project$ rm ./main.o
 ~/my_project$ fake exec  # Will execute all tasks
 ```
 

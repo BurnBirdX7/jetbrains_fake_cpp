@@ -1,0 +1,57 @@
+compile:
+  dependencies:
+    - main.cpp
+    - exec
+  target: main.o
+  run: g++ -c main.cpp -o main.o
+
+phony1:
+  dependencies:
+    - compile
+  run: echo "phony1"
+
+phony2:
+  dependencies:
+    - phony1
+  run: echo "phony2"
+
+phony3:
+  dependencies:
+    - phony2
+  run: echo "phony3"
+
+phony4:
+  dependencies:
+    - phony3
+  run: echo "phony4"
+
+phony5:
+  dependencies:
+    - phony4
+    - decoy_task
+  run: echo "phony2"
+
+decoy_task:
+  dependencies:
+    - other_decoy_task
+    - de-coy.txt
+  run: echo "decoy task"
+
+other_decoy_task:
+  dependencies:
+    - decoy1.txt
+  run: echo "decoy task"
+
+build:
+  dependencies:
+    - decoy1.txt
+    - phony5
+    - decoy2.txt
+  target: main
+  run: g++ main.o -o main
+
+exec:
+  dependencies:
+    - build
+    - decoy_task
+  run: ./main

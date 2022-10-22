@@ -187,6 +187,6 @@ std::ostream& operator<<(std::ostream& out, ExecutionQueueBuilder const& builder
 
 void ExecutionQueueBuilder::addError(std::string const& task_name, std::string const& msg)
 {
-    errors_.emplace_back(task_name + ": " + msg);
+    errors_.emplace_back('"' + task_name + "\": " + msg);
 }
 
