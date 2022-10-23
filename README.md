@@ -9,7 +9,7 @@ Fake build system
 
 ## Usage
 
-Execute `fake` in directory with `fake.yaml` and target task.
+Execute `fake <task>` in directory with `fake.yaml`.
 
 `fake.yaml` contains description of tasks in following format:
  * task-name
@@ -19,6 +19,14 @@ Execute `fake` in directory with `fake.yaml` and target task.
    * "`target`" (optional): contains name of target file that will be produced
     after successful execution of this task\
     If **target** isn't specified, task is executed unconditionally
+
+Some details:
+ * If task listed in dependencies isn't in `fake.yaml`, **fake** will try to find file with the same name
+   * If file cannot be found, **fake** remembers this as error and continues processing of the dependencies.
+     **fake** will fail at the end.\
+     This behaviour allows to detect multiple missing dependencies with one execution of **fake**.
+ * If there's a cyclic dependency (`task1 -> task2 -> task3 -> task1`). **fake** immediately fails
+ * When **fake** fails, list of occurred errors is printed.
 
 Example:
 ```yaml
@@ -76,9 +84,11 @@ You can build this project with your IDE, or from terminal:
   .\build.bat
   ```
 
+If `yaml-cpp` and/or `googletest` can't be found, they are fetched from GitHub.
+
 ### CMake Toolchain
 If you have vcpkg (or maybe other package manager that can be integrated with CMake this way)
-you can specify location of cmake toolchain file with `toolchain` option for the script file:
+you can specify location of *cmake toolchain file* with `toolchain` option for the script file:
 * Linux
   ```shell
   ./build.sh toolchain /path/to/toolchain/file
@@ -88,7 +98,7 @@ you can specify location of cmake toolchain file with `toolchain` option for the
   .\build.bat toolchain "C:\\path\\to\\toolchain\\file"`
   ```
 
-For vcpkg it's `"[VCPKG_ROOT]/scripts/buildsystems/vcpkg.cmake"`
+For vcpkg path is `"[VCPKG_ROOT]/scripts/buildsystems/vcpkg.cmake"`
 
 ### Manual build
 If build scripts are not working for you, I recommend using **CLion** / **Visual Studio** IDEs to build the project.\
@@ -102,8 +112,8 @@ cmake --build [Build dir] --target fake --config [Build type]
 
 Unit tests are located in `gtest` directory.
 
-If you used IDE to build the project it's likely that you can run tests there too.\
-You can also run unit-tests from terminal:
+If you used IDE to build the project it's likely that you have tests available there.\
+If you built tests with `build.sh`/`build.bat` you can build tests from terminal.
  * Linux
    ```shell
    ./gtest.sh
@@ -133,3 +143,10 @@ cd [Build dir]\gtest
 .\[Build type]\test
 ```
 
+### basic-test.sh (Linux only)
+
+These aren't intended for Unit-testing, just to test if CI works properly...\
+Executes only 2 tests:
+ * Basic: checks if program fails when there's no `fake.yaml`, there's no `<task>` argument,
+and not fails when executed with correct `fake.yaml`.
+ * Cyclic dependency: checks if **fake** fails when called for different tasks.

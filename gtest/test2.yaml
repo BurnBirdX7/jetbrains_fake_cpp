@@ -1,0 +1,15 @@
+compile:
+  dependencies: main.cpp
+  target: main.o
+  run: g++ -c main.cpp -o main.o
+
+build:
+  dependencies:
+    - compile
+  target: main
+  run: g++ main.o -o main
+
+exec:
+  dependencies:
+    - build
+  run: ./main

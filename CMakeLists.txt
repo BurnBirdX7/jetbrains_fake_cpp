@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(SRC src/Task.cpp include/Task.hpp
         src/ExecutionQueueBuilder.cpp include/ExecutionQueueBuilder.hpp)
 
-add_library(fake_lib ${SRC})
+add_library(fake_lib ${SRC})  # Also links to tests
 add_executable(fake src/main.cpp)
 
 # COMPILER SETUP
