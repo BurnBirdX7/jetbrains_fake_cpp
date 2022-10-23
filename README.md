@@ -70,45 +70,33 @@ If you have C++ package manager that has these packages **and** cmake toolchain,
 If `jbeder/yaml-cpp` and `google/googletest` cannot be found on your system, they are downloaded from GitHub
 
 ### Default Way
-
-**Sub-option 1 (Linux only)**
-```shell
-./build.sh
-```
-
-**Sub-option 2**
-```shell
-cmake -S . -B build
-cmake --build build --target fake
-```
+You can use your IDE or build it from shell:
+* Linux
+  ```shell
+  ./build.sh
+  ```
+* Windows
+  ```powershell
+  .\build.bat
+  ```
 
 ### CMake Toolchain
 [ Tested only with vcpkg ]\
 Install `yaml-cpp` with your package manager. For example `vcpkg install yaml-cpp:x64-linux`.\
 install `googletest`. For example `vcpkg install gtest:x64-linux`.
-
 Build `fake`:
+* Linux
+  ```shell
+  ./build.sh toolchain /path/to/toolchain/file
+  ```
+* Windows
+  ```powershell
+  .\build.bat toolchain "C:\\path\\to\\toolchain\\file"`
+  ```
 
-**Sub-option 1 (Linux only)**
-```shell
-./build.sh toolchain /path/to/toolchain/file
-```
 For vcpkg it's `"[VCPKG_ROOT]/scripts/buildsystems/vcpkg.cmake"`
-
-**Sub-option 2**
-```shell
-cmake -DCMAKE_TOOLCHAIN_FILE="/path/to/toolchain/file" -S . -B build
-cmake --build build --target fake
-```
 
 ## Unit-testing
 
 Unit tests are located in `gtest` directory.
-You can build and run them by executing `./gtest.sh` in root directory of the repository.
-
-**Cross-platform way**
-```shell
-cmake --build build --target test
-./build/gtest/test
-```
-
+You can build and run them by executing `./gtest.sh` on Linux or `.\gtest.bat` on Windows in root directory of the repository.
