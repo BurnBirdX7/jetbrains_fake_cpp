@@ -62,15 +62,11 @@ exec:
     * MSVC 2015+ on Windows
 
 
-**Also:**
+**Also uses these:**
  * [`jbeder/yaml-cpp`](https://github.com/jbeder/yaml-cpp) - library for work with YAML
  * [`google/googletest`](https://github.com/google/googletest) - unit-test library for C++
 
-If you have C++ package manager that has these packages **and** cmake toolchain, you can use it (see **CMake Toolchain**) \
-If `jbeder/yaml-cpp` and `google/googletest` cannot be found on your system, they are downloaded from GitHub
-
-### Default Way
-You can use your IDE or build it from shell:
+You can build this project with your IDE, or from terminal:
 * Linux
   ```shell
   ./build.sh
@@ -81,10 +77,8 @@ You can use your IDE or build it from shell:
   ```
 
 ### CMake Toolchain
-[ Tested only with vcpkg ]\
-Install `yaml-cpp` with your package manager. For example `vcpkg install yaml-cpp:x64-linux`.\
-install `googletest`. For example `vcpkg install gtest:x64-linux`.
-Build `fake`:
+If you have vcpkg (or maybe other package manager that can be integrated with CMake this way)
+you can specify location of cmake toolchain file with `toolchain` option for the script file:
 * Linux
   ```shell
   ./build.sh toolchain /path/to/toolchain/file
@@ -96,7 +90,46 @@ Build `fake`:
 
 For vcpkg it's `"[VCPKG_ROOT]/scripts/buildsystems/vcpkg.cmake"`
 
+### Manual build
+If build scripts are not working for you, I recommend using **CLion** / **Visual Studio** IDEs to build the project.\
+You can try building the project with CMake and parameters to your taste:
+```shell
+cmake -S . -B [Build dir] -G [Generator] -DCMAKE_BUILD_TYPE=[Build type] [Your other options]
+cmake --build [Build dir] --target fake --config [Build type]
+```
+
 ## Unit-testing
 
 Unit tests are located in `gtest` directory.
-You can build and run them by executing `./gtest.sh` on Linux or `.\gtest.bat` on Windows in root directory of the repository.
+
+If you used IDE to build the project it's likely that you can run tests there too.\
+You can also run unit-tests from terminal:
+ * Linux
+   ```shell
+   ./gtest.sh
+   ```
+ * Windows
+   ```powershell
+   .\gtest.bat
+   ```
+
+### With manual build
+If you built it manually you can build and run these tests manually too:
+```shell
+cmake --build [Build dir] --target test
+```
+There's a problem: location of compiled binaries depends on Generator you used...\
+If it was **ninja** or some **Makefiles**, tests most likely located in `[Build dir]/gtest`\
+If it was **MSBuild** (default in Windows), they most likely located in `[Build dir]/gtest/[Build type]`
+(Build type by default is `DEBUG`)
+
+To launch tests:
+```shell
+# Ninja / Makefiles
+cd [Build dir]/gtest
+./test
+# MSBuild
+cd [Build dir]\gtest
+.\[Build type]\test
+```
+

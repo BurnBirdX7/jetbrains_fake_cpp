@@ -15,6 +15,14 @@ endif()
 
 
 # TESTS
+
+set(TEST_YAML_FILES test1.yaml test2.yaml)
+foreach(file ${TEST_YAML_FILES})
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${file}
+            DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endforeach()
+
+
 enable_testing()
 set(TEST_SRC TaskTest.cpp BuilderTest.cpp)
 add_executable(test ${TEST_SRC})

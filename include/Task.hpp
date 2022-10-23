@@ -21,14 +21,18 @@ public:
     };
 
     explicit Task(std::string name);
+    Task(Task const&) = default;
+    Task(Task&&) = default;
+    Task& operator=(Task const&) = default;
+    Task& operator=(Task&&) = default;
 
     // Change state:
     void setTarget(std::string const& target);
     void setCmd(std::string const& str);
     void setEnqueued(bool = true);
 
-    bool checkFileDependency(std::string const& file_name);
-    void checkTaskDependency(const ptr& task);
+    bool evaluateFileDependency(std::string const& file_name);
+    void evaluateTaskDependency(const ptr& task);
 
     [[nodiscard]] Status status() const;
 
@@ -37,8 +41,9 @@ public:
     [[nodiscard]] path const& target() const;
     [[nodiscard]] std::optional<time_type> const& time() const;
 
-    static std::pair<ptr, dep_list> task_from_yaml(std::string const& name, YAML::Node const& node);
+    static std::pair<ptr, dep_list> fromYaml(std::string const& name, YAML::Node const& node);
     friend bool operator<(Task const& lhs, Task const& rhs);
+    friend std::ostream& operator<<(std::ostream& out, Task const& task);
     friend std::ostream& operator<<(std::ostream& out, ptr const& task);
 
 private:

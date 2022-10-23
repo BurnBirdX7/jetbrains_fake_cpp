@@ -35,13 +35,14 @@ void Task::setEnqueued(bool b)
 }
 
 
-bool Task::checkFileDependency(std::string const& file_name)
+bool Task::evaluateFileDependency(std::string const& file_name)
 {
+    if (!has_dependencies_)
+        throw std::runtime_error("This file doesn't have any dependencies...");
+
     if (!std::filesystem::exists(file_name)) { // There's no such file...
         return false;
     }
-
-    has_dependencies_ = true;
 
     if (time_.has_value() &&
         time_.value() < std::filesystem::last_write_time(file_name))
@@ -52,10 +53,10 @@ bool Task::checkFileDependency(std::string const& file_name)
     return true;
 }
 
-void Task::checkTaskDependency(Task::ptr const& task)
+void Task::evaluateTaskDependency(Task::ptr const& task)
 {
-    // We believe that we depend on `task`
-    has_dependencies_ = true;
+    if (!has_dependencies_)
+        throw std::runtime_error("This task doesn't have any dependencies...");
 
     if (task->status() == Status::ENQUEUED || *this < *task) {
         dependency_is_updated_ = true;
@@ -99,7 +100,7 @@ std::optional<Task::time_type> const& Task::time() const
     return time_;
 }
 
-std::pair<Task::ptr, std::list<std::string>> Task::task_from_yaml(std::string const& name, YAML::Node const& doc)
+std::pair<Task::ptr, std::list<std::string>> Task::fromYaml(std::string const& name, YAML::Node const& doc)
 {
     auto node = doc[name];
     if (!node.IsDefined())
@@ -122,15 +123,21 @@ std::pair<Task::ptr, std::list<std::string>> Task::task_from_yaml(std::string co
 
     auto deps = node[DEPS_KEYWORD];
 
-    if (deps.IsScalar())
+    if (deps.IsScalar()) {
+        task->has_dependencies_ = true;
         return {task, {deps.as<std::string>()}};
+    }
 
-    auto list = dep_list{};
-    if (deps.IsSequence())
-        for (auto const& dep : deps)
+    if (deps.IsSequence()) {
+        task->has_dependencies_ = true;
+        auto list = dep_list{};
+        for (auto const& dep: deps)
             list.push_back(dep.as<std::string>());
 
-    return {task, list};
+        return {task, list};
+    }
+
+    return {task, {}};
 }
 
 bool operator<(Task const& lhs, Task const& rhs)
@@ -142,7 +149,12 @@ bool operator<(Task const& lhs, Task const& rhs)
     return lhs.time_.value() < rhs.time_.value();
 }
 
+std::ostream& operator<<(std::ostream& out, Task const& task)
+{
+    return out << "[" << task.name_ << "]: " << task.cmd_;
+}
+
 std::ostream& operator<<(std::ostream& out, Task::ptr const& task)
 {
-    return out << "[" << task->name_ << "]: " << task->cmd_;
+    return out << *task;
 }

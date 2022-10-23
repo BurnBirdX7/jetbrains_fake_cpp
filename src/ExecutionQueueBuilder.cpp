@@ -12,7 +12,7 @@ void ExecutionQueueBuilder::build(std::string const& task_name)
     Task::dep_list root_deps{};
 
     try {
-        std::tie(root_task, root_deps) = Task::task_from_yaml(task_name, doc_);
+        std::tie(root_task, root_deps) = Task::fromYaml(task_name, doc_);
     }
     catch (std::runtime_error const& err) {
         // stop if we can't process target task
@@ -52,7 +52,7 @@ void ExecutionQueueBuilder::build(std::string const& task_name)
              * and we can immediately tell if we need to update parent task or not
              */
 
-            if (!parent->checkFileDependency(name)) { // File doesn't exist...
+            if (!parent->evaluateFileDependency(name)) { // File doesn't exist...
                 addError(name, "Is not a task or a file");
             }
         }
@@ -105,7 +105,7 @@ void ExecutionQueueBuilder::unfoldStack(task_ptr const& up_to)
          */
         dependency_stack_.pop_front();
         if (!dependency_stack_.empty())
-            dependency_stack_.front()->checkTaskDependency(current);
+            dependency_stack_.front()->evaluateTaskDependency(current);
     }
 }
 
@@ -135,7 +135,7 @@ void ExecutionQueueBuilder::addTask(std::string const& name)
      */
 
     try {
-        auto [task, deps] = Task::task_from_yaml(name, doc_);
+        auto [task, deps] = Task::fromYaml(name, doc_);
 
         dependency_stack_.push_front(task);
         constructed_tasks_[task->name()] = task;

@@ -1,0 +1,43 @@
+incorrect_task1:
+  random_property: hello, world
+
+incorrect_task2:
+  - elem1
+  - elem2
+
+incorrect_task3: just some string...
+
+no_run:
+  random: 1234
+  dependencies: some_task
+  target: no_run.out
+
+no_target:
+  random: 4321
+  dependencies: some_task
+  run: g++ --version
+
+no_dependencies:
+  random: abcd
+  target: no_dependencies.out
+  run: g++ --version
+
+one_dependency_scalar:
+  target: one_dependency.out
+  run: g++ --version
+  dependencies: one_dependency.txt
+
+one_dependency_list:
+  target: one_dependency.out
+  run: g++ --version
+  dependencies:
+    - one_dependency.txt
+
+four_dependencies:
+  target: many_dependencies.out
+  run: g++ --version
+  dependencies:
+    - dep1
+    - dep2
+    - dep3
+    - dep4
