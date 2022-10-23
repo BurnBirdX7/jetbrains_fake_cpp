@@ -1,7 +1,7 @@
 export FAKE
 FAKE="$(pwd)/build/fake"
 
-[ ! -x "$FAKE" ] && echo "You have to build fake first..." && exit 1
+[ ! -x "$FAKE" ] && echo "You have to build it with ./build.sh first..." && exit 1
 
 export OK=0
 export INCORRECT_CALL=1

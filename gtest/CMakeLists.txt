@@ -1,30 +1,26 @@
 cmake_minimum_required(VERSION 3.16)
 project(jetbrains_fake_cpp_testing)
 
+# GTEST
 find_package(GTest QUIET)
-if ( False )
-    message(WARNING "GTest not found! Fetching...")
-    include(FetchContent)
+if (NOT GTest_FOUND)
+    message("GTest not found! Fetching...")
     FetchContent_Declare(
-            googletest
-            GIT_REPOSITORY "https://github.com/jbeder/yaml-cpp.git"
-            GIT_TAG 1b50109f7bea60bd382d8ea7befce3d2bd67da5f
+            GTest
+            GIT_REPOSITORY "https://github.com/google/googletest"
+            GIT_TAG release-1.12.1
     )
-    FetchContent_MakeAvailable(googletest)
-
+    FetchContent_MakeAvailable(GTest)
 endif()
 
+
+# TESTS
 enable_testing()
-
 set(TEST_SRC TaskTest.cpp BuilderTest.cpp)
-foreach(src ${SRC})
-    set(TEST_SRC "${TEST_SRC};../${src}")
-endforeach()
-
 add_executable(test ${TEST_SRC})
 target_link_libraries(test PUBLIC
         GTest::gtest_main
-        yaml-cpp)
+        fake_lib)
 
 include(GoogleTest)
 gtest_discover_tests(test)

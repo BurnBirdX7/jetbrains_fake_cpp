@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.16)
 project(jetbrains_fake_cpp)
+include(FetchContent)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SRC src/Task.cpp src/Task.hpp
-        src/ExecutionQueueBuilder.cpp src/ExecutionQueueBuilder.hpp)
+set(SRC src/Task.cpp include/Task.hpp
+        src/ExecutionQueueBuilder.cpp include/ExecutionQueueBuilder.hpp)
 
-add_executable(fake src/main.cpp ${SRC})
+add_library(fake_lib ${SRC})
+add_executable(fake src/main.cpp)
 
 # COMPILER SETUP
 if (MSVC)
@@ -20,12 +22,10 @@ else()
     endif()
 endif()
 
-
 # YAML
 find_package(yaml-cpp QUIET)
 if(NOT yaml-cpp_FOUND)
-    message(WARNING "yaml-cpp not found! Fetching...")
-    include(FetchContent)
+    message("yaml-cpp not found! Fetching...")
     FetchContent_Declare(
             yaml-cpp
             GIT_REPOSITORY "https://github.com/jbeder/yaml-cpp.git"
@@ -36,6 +36,7 @@ endif()
 
 # GTest
 add_subdirectory(gtest)
-
-target_link_libraries(fake PRIVATE yaml-cpp)
+target_include_directories(fake_lib PUBLIC include)
+target_link_libraries(fake_lib PUBLIC yaml-cpp)
+target_link_libraries(fake PUBLIC fake_lib)
 

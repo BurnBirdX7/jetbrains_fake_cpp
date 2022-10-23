@@ -2,6 +2,11 @@
 
 Fake build system
 
+## Navigate
+ * [Usage](#Usage)
+ * [Build](#Build)
+ * [Unit-testing](#Unit-testing)
+
 ## Usage
 
 Execute `fake` in directory with `fake.yaml` and target task.
@@ -73,10 +78,8 @@ If `jbeder/yaml-cpp` and `google/googletest` cannot be found on your system, the
 
 **Sub-option 2**
 ```shell
-mkdir build
-cd build
-cmake ..
-cmake --build .
+cmake -S . -B build
+cmake --build build --target fake
 ```
 
 ### CMake Toolchain
@@ -94,9 +97,18 @@ For vcpkg it's `"[VCPKG_ROOT]/scripts/buildsystems/vcpkg.cmake"`
 
 **Sub-option 2**
 ```shell
-mkdir build
-cd build
-cmake -DCMAKE_TOOLCHAIN_FILE="/path/to/toolchain/file" ..
-cmake --build .
+cmake -DCMAKE_TOOLCHAIN_FILE="/path/to/toolchain/file" -S . -B build
+cmake --build build --target fake
+```
+
+## Unit-testing
+
+Unit tests are located in `gtest` directory.
+You can build and run them by executing `./gtest.sh` in root directory of the repository.
+
+**Cross-platform way**
+```shell
+cmake --build build --target test
+./build/gtest/test
 ```
 
