@@ -3,11 +3,15 @@
 Fake build system
 
 ## Navigate
- * [Usage](#Usage)
- * [Build](#Build)
+ * [Using](#Using)
+ * [Building](#Building)
+   * [Standard](#Building)
+   * [CMake Toolchain](#CMake Toolchain)
  * [Unit-testing](#Unit-testing)
+ * [All of this but with **fake**](#All with fake)
+   * Build, test, install, etc.
 
-## Usage
+## Using
 
 Execute `fake <task>` in directory with `fake.yaml`.
 
@@ -61,7 +65,7 @@ exec:
 ```
 
 
-## Build
+## Building
 **Requirements**:
 * CMake 3.16+
     * Build tool with [CMake generator](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html) (Make, Ninja, etc.)
@@ -150,3 +154,29 @@ Executes only 2 tests:
  * Basic: checks if program fails when there's no `fake.yaml`, there's no `<task>` argument,
 and not fails when executed with correct `fake.yaml`.
  * Cyclic dependency: checks if **fake** fails when called for different tasks.
+## All with fake
+
+(Linux only, requires GCC)
+
+If you already have fake installed on your system you can do all of this with help of **fake**.\
+This repository has `fake.yaml` in its root and can be built with **fake**.
+
+You still need all the other required software,
+it's just funny replacement for build and test scripts :( 
+
+Main tasks:
+ * `build` - builds fake from sources
+ * `run-tests` - runs Unit tests
+ * `clean` - cleans build directory
+
+Bonus:
+ * `install` - installs **fake** in `/usr/local/bin` (requires permissions to access the folder)
+ * `remove` - removes **fake** from said directory (also requires permissions)
+ * `update` - pulls the latest version of this repository from git
+
+and other...
+
+With **fake** you can shorten building and testing **fake** to:
+```shell
+fake run-tests
+```

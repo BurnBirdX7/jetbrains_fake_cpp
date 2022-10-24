@@ -1,9 +1,15 @@
 #include <gtest/gtest.h>
+
 #include <fstream>
 #include <list>
 #include <string>
 #include <utility>
+#include <thread>
+#include <chrono>
+
 #include "Task.hpp"
+
+using namespace std::chrono;
 
 auto name1 = "my-task-1";
 auto name2 = "my-task-2";
@@ -19,7 +25,7 @@ std::pair<Task, Task> default2Tasks()
     return {Task{name1}, Task{name2}};
 }
 
-TEST(TaskTest, BasicChecks) {
+TEST(TaskClass, BasicChecks) {
     auto task = defaultTask();
 
     ASSERT_EQ(task.name(), name1);
@@ -28,7 +34,7 @@ TEST(TaskTest, BasicChecks) {
     ASSERT_EQ(task.time(), std::nullopt);
 }
 
-TEST(TaskTest, TargetExistance) {
+TEST(TaskClass, TargetExistance) {
     auto non_existent_target = "target1";
     auto existing_target = "target2";
     {   // Create target
@@ -45,7 +51,8 @@ TEST(TaskTest, TargetExistance) {
 
     task2.setTarget(existing_target);
     ASSERT_NE(task2.time(), std::nullopt);
-    std::cout << "Task 2 time: " << task2.time().value().time_since_epoch().count();
+    auto time = task2.time().value().time_since_epoch().count();
+    std::cout << "Task 2 time: " << time  << ", " << "\n";
     ASSERT_EQ(task2.target(), existing_target);
 
     ASSERT_LT(task1, task2);
@@ -54,8 +61,7 @@ TEST(TaskTest, TargetExistance) {
     std::filesystem::remove(existing_target);
 }
 
-TEST(TaskTest, OutputOperator) {
-
+TEST(TaskClass, OutputOperator) {
     Task task{"task"};
     task.setCmd("g++ --version");
     auto shared_task = std::make_shared<Task>("shared task");
@@ -65,7 +71,7 @@ TEST(TaskTest, OutputOperator) {
     EXPECT_FALSE(std::cout.bad());
 }
 
-TEST(TaskTest, TaskFromYAML) {
+TEST(TaskClass, TaskFromYAML) {
     auto yaml_doc = YAML::LoadFile("test1.yaml");
 
     ASSERT_THROW(Task::fromYaml("incorrect_task1", yaml_doc), std::runtime_error);
@@ -90,12 +96,12 @@ TEST(TaskTest, TaskFromYAML) {
     }
 }
 
-TEST(TaskTest, NoTargetStatus) {
+TEST(TaskClass, NoTargetStatus) {
     auto [task, dep_list] = Task::fromYaml("no_target", test1_doc);
     ASSERT_EQ(task->status(), Task::Status::NEEDS_UPDATING);
 }
 
-TEST(TaskTest, NoDependenciesStatus) {
+TEST(TaskClass, NoDependenciesStatus) {
     {
         {   // Create and write
             std::ofstream stream{"no_dependencies.out"};
@@ -114,7 +120,7 @@ TEST(TaskTest, NoDependenciesStatus) {
 
 }
 
-TEST(TaskTest, EnqueuedStatus) {
+TEST(TaskClass, EnqueuedStatus) {
     /*
      * If task was enqueued, it should have status ENQUEUED
      * And this should be reversible
@@ -134,20 +140,47 @@ void dep_eval(Task::ptr const& t1, Task::ptr const& t2) {
     t1->evaluateTaskDependency(t2);
 }
 
-TEST(TaskTest, DependencyEvaluation) {
+TEST(TaskClass, DependencyEvaluation) {
     /*
      * Call for evaluate[_]Dependency() methods of tasks with no dependencies should result in throw
      */
 
     auto yaml_doc = YAML::LoadFile("test1.yaml");
 
-    auto [task, _1] = Task::fromYaml("no_dependencies", yaml_doc);
-    auto [task_d1, _2] = Task::fromYaml("one_dependency_scalar", yaml_doc);
-    auto [task_dl1, _3] = Task::fromYaml("one_dependency_list", yaml_doc);
-    auto [task_dl4, _4] = Task::fromYaml("four_dependencies", yaml_doc);
+    auto [task    , _1] = Task::fromYaml("no_dependencies"      , yaml_doc);
+    auto [task_d1 , _2] = Task::fromYaml("one_dependency_scalar", yaml_doc);
+    auto [task_dl1, _3] = Task::fromYaml("one_dependency_list"  , yaml_doc);
+    auto [task_dl4, _4] = Task::fromYaml("four_dependencies"    , yaml_doc);
 
     ASSERT_NO_THROW(dep_eval(task_d1, task));
     ASSERT_NO_THROW(dep_eval(task_dl1, task));
     ASSERT_NO_THROW(dep_eval(task_dl4, task));
     ASSERT_THROW(dep_eval(task, task_d1),  std::runtime_error);
+}
+
+TEST(TaskClass, TargetTime) {
+    // Create tartgets:
+    {   // Older target
+        std::ofstream stream{"target1"};
+        stream << "t1";
+    }
+    std::this_thread::sleep_for(1s);
+    {   // Newer target
+        std::ofstream stream{"target2"};
+        stream << "t2";
+    }
+
+    // Create task
+    auto [task1, task2] = default2Tasks();
+    task1.setTarget("target1");
+    task2.setTarget("target2");
+
+    ASSERT_NE(task1.status(), Task::Status::NEEDS_UPDATING);
+    ASSERT_NE(task2.status(), Task::Status::NEEDS_UPDATING);
+
+    ASSERT_TRUE(task1 < task2);
+    ASSERT_FALSE(task2 < task1);
+
+    std::filesystem::remove("target1");
+    std::filesystem::remove("target2");
 }
