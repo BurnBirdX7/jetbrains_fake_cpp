@@ -6,9 +6,9 @@ Fake build system
  * [Using](#Using)
  * [Building](#Building)
    * [Standard](#Building)
-   * [CMake Toolchain](#CMake Toolchain)
+   * [CMake Toolchain](#CMake-Toolchain)
  * [Unit-testing](#Unit-testing)
- * [All of this but with **fake**](#All with fake)
+ * [All of this but with **fake**](#All-with-fake)
    * Build, test, install, etc.
 
 ## Using
@@ -112,7 +112,7 @@ cmake -S . -B [Build dir] -G [Generator] -DCMAKE_BUILD_TYPE=[Build type] [Your o
 cmake --build [Build dir] --target fake --config [Build type]
 ```
 
-## Unit-testing
+## Unit testing
 
 Unit tests are located in `gtest` directory.
 
