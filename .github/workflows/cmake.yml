@@ -1,0 +1,47 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  BUILD_TYPE: Release
+  BUILD_DIR: ${{github.workspace}}/build
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure CMake
+        run: cmake -S . -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: Build
+        run: cmake --build ${{env.BUILD_DIR}} --target fake test
+
+      - name: Test
+        working-directory: ${{env.BUILD_DIR}}/gtest
+        run: ctest -C ${{env.BUILD_TYPE}}
+
+      - name: Test itself
+        run: ${{env.BUILD_DIR}}/fake run-tests
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure CMake
+        run: cmake -S . -B ${{env.BUILD_DIR}}
+
+      - name: Build
+        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target fake test
+
+      - name: Test
+        working-directory: ${{env.BUILD_DIR}}/gtest
+        run: ctest -C ${{env.BUILD_TYPE}}
