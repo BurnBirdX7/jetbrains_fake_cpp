@@ -22,8 +22,8 @@ build:
 build-tests:
   dependencies:
    - build
-   - gtest/TaskTest.cpp
-   - gtest/BuilderTest.cpp
+   - gtest/TaskClass.cpp
+   - gtest/EQBuilderClass.cpp
   target: build/gtest/test
   run: cmake --build build --target test
 
@@ -34,10 +34,10 @@ run-tests:
 install:
   dependencies: build
   target: /usr/local/bin/fake
-  run: cp build/fake /usr/local/bin
+  run: sudo cp -f build/fake /usr/local/bin
 
 remove:
-  run: rm /usr/local/bin
+  run: sudo rm /usr/local/bin/fake
 
 update:
   run: git pull

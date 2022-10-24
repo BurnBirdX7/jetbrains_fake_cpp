@@ -88,7 +88,7 @@ int ExecutionQueueBuilder::execute(std::function<int (task_ptr)> const& executor
 void ExecutionQueueBuilder::unfoldStack(task_ptr const& up_to)
 {
     while(!dependency_stack_.empty() && dependency_stack_.front() != up_to) { // O(log n)
-        auto current = constructed_tasks_[dependency_stack_.front()->name()];
+        auto current = dependency_stack_.front();
 
         if (current->status() == Task::Status::NEEDS_UPDATING) {
             /*
