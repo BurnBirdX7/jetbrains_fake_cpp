@@ -22,8 +22,8 @@ build:
 build-tests:
   dependencies:
    - build
-   - gtest/TaskClass.cpp
-   - gtest/EQBuilderClass.cpp
+   - gtest/TaskTest.cpp
+   - gtest/BuilderTest.cpp
   target: build/gtest/test
   run: cmake --build build --target test
 
