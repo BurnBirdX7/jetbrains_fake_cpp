@@ -32,7 +32,7 @@ TEST(TaskClass, BasicChecks) {
     ASSERT_EQ(task.cmd(), "");
     ASSERT_TRUE(task.target().empty());
     ASSERT_FALSE(task.targetExists());
-    ASSERT_ANY_THROW(auto t = task.targetTime());
+    ASSERT_ANY_THROW([[maybe_unused]] auto t = task.targetTime());
 }
 
 TEST(TaskClass, TargetExistance) {
@@ -48,12 +48,12 @@ TEST(TaskClass, TargetExistance) {
 
     task1.setTarget(non_existent_target);
     ASSERT_FALSE(task1.targetExists());
-    ASSERT_ANY_THROW(auto t = task1.targetTime());
+    ASSERT_ANY_THROW([[maybe_unused]] auto t = task1.targetTime());
     ASSERT_EQ(task1.target(), non_existent_target);
 
     task2.setTarget(existing_target);
     ASSERT_TRUE(task2.targetExists());
-    ASSERT_NO_THROW(auto t = task2.targetTime());
+    ASSERT_NO_THROW([[maybe_unused]] auto t = task2.targetTime());
     auto time = task2.targetTime().time_since_epoch().count();
     out << "Task 2 time: " << time  << ", " << "\n";
     ASSERT_EQ(task2.target(), existing_target);
