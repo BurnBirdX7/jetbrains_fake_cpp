@@ -39,10 +39,11 @@ public:
     [[nodiscard]] std::string const& name() const;
     [[nodiscard]] std::string const& cmd() const;
     [[nodiscard]] path const& target() const;
-    [[nodiscard]] std::optional<time_type> const& time() const;
+    [[nodiscard]] bool targetExists() const;
+    [[nodiscard]] time_type const& targetTime() const; // Will throw if target doesn't exist
 
     static std::pair<ptr, dep_list> fromYaml(std::string const& name, YAML::Node const& node);
-    friend bool operator<(Task const& lhs, Task const& rhs);
+    friend bool operator<(Task const& lhs, Task const& rhs); // Lesser -> Older
     friend std::ostream& operator<<(std::ostream& out, Task const& task);
     friend std::ostream& operator<<(std::ostream& out, ptr const& task);
 

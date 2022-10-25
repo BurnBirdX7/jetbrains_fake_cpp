@@ -13,8 +13,8 @@ using namespace std::chrono;
 
 auto name1 = "my-task-1";
 auto name2 = "my-task-2";
-
 auto test1_doc = YAML::LoadFile("test1.yaml");
+auto out = std::ofstream("output.txt");
 
 Task defaultTask() {
     return Task{name1};
@@ -30,8 +30,9 @@ TEST(TaskClass, BasicChecks) {
 
     ASSERT_EQ(task.name(), name1);
     ASSERT_EQ(task.cmd(), "");
-    ASSERT_EQ(task.target(), std::filesystem::path{});
-    ASSERT_EQ(task.time(), std::nullopt);
+    ASSERT_TRUE(task.target().empty());
+    ASSERT_FALSE(task.targetExists());
+    ASSERT_ANY_THROW(auto t = task.targetTime());
 }
 
 TEST(TaskClass, TargetExistance) {
@@ -46,17 +47,19 @@ TEST(TaskClass, TargetExistance) {
     auto [task1, task2] = default2Tasks();
 
     task1.setTarget(non_existent_target);
-    ASSERT_EQ(task1.time(), std::nullopt);
+    ASSERT_FALSE(task1.targetExists());
+    ASSERT_ANY_THROW(auto t = task1.targetTime());
     ASSERT_EQ(task1.target(), non_existent_target);
 
     task2.setTarget(existing_target);
-    ASSERT_NE(task2.time(), std::nullopt);
-    auto time = task2.time().value().time_since_epoch().count();
-    std::cout << "Task 2 time: " << time  << ", " << "\n";
+    ASSERT_TRUE(task2.targetExists());
+    ASSERT_NO_THROW(auto t = task2.targetTime());
+    auto time = task2.targetTime().time_since_epoch().count();
+    out << "Task 2 time: " << time  << ", " << "\n";
     ASSERT_EQ(task2.target(), existing_target);
 
-    ASSERT_LT(task1, task2);
-    ASSERT_LT(task2, task1);
+    ASSERT_FALSE(task1 < task2);
+    ASSERT_TRUE(task2 < task1);
 
     std::filesystem::remove(existing_target);
 }
@@ -67,8 +70,8 @@ TEST(TaskClass, OutputOperator) {
     auto shared_task = std::make_shared<Task>("shared task");
     shared_task->setCmd("clang --version");
 
-    ASSERT_NO_THROW(std::cout << task << '\n' << shared_task << "\n");
-    EXPECT_FALSE(std::cout.bad());
+    ASSERT_NO_THROW(out << task << '\n' << shared_task << "\n");
+    EXPECT_FALSE(out.bad());
 }
 
 TEST(TaskClass, TaskFromYAML) {
@@ -159,7 +162,7 @@ TEST(TaskClass, DependencyEvaluation) {
 }
 
 TEST(TaskClass, TargetTime) {
-    // Create tartgets:
+    // Create targets:
     {   // Older target
         std::ofstream stream{"target1"};
         stream << "t1";

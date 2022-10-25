@@ -21,7 +21,6 @@ void Task::setTarget(std::string const& target)
         time_ = std::filesystem::last_write_time(target_);
     else
         time_ = std::nullopt;
-
 }
 
 void Task::setCmd(std::string const& str)
@@ -44,8 +43,8 @@ bool Task::evaluateFileDependency(std::string const& file_name)
         return false;
     }
 
-    if (time_.has_value() &&
-        time_.value() < std::filesystem::last_write_time(file_name))
+    if (targetExists() &&
+        targetTime() < std::filesystem::last_write_time(file_name))
     {
         dependency_is_updated_ = true;
     }
@@ -68,16 +67,12 @@ Task::Status Task::status() const
     if (enqueued_)
         return Status::ENQUEUED;
 
-    if (!time_.has_value() || dependency_is_updated_) // No target or there's updated dep
+    if (!targetExists() || dependency_is_updated_) // No target or there's updated dep
         return Status::NEEDS_UPDATING;
 
-    if (!has_dependencies_ && time_.has_value()) // No deps, but target exists
-        return Status::UP_TO_DATE;
+    // -> target exists && there's no updated dependency
 
-    if (has_dependencies_)
-        return Status::UP_TO_DATE;
-
-    return Status::UNKNOWN;
+    return Status::UP_TO_DATE;
 }
 
 std::string const& Task::name() const
@@ -95,9 +90,14 @@ std::filesystem::path const& Task::target() const
     return target_;
 }
 
-std::optional<Task::time_type> const& Task::time() const
+bool Task::targetExists() const
 {
-    return time_;
+    return time_.has_value();
+}
+
+Task::time_type const& Task::targetTime() const
+{
+    return time_.value();
 }
 
 std::pair<Task::ptr, std::list<std::string>> Task::fromYaml(std::string const& name, YAML::Node const& doc)
@@ -142,11 +142,13 @@ std::pair<Task::ptr, std::list<std::string>> Task::fromYaml(std::string const& n
 
 bool operator<(Task const& lhs, Task const& rhs)
 {
-    // If we cannot compare the two, we just assume that rhs is updated and lhs is not
-    if (!lhs.time_.has_value() || !rhs.time_.has_value())
+    if (!lhs.targetExists()) // lhs can't be older if it doesn't exist
+        return false;
+
+    if (!rhs.targetExists()) // rhs is going to be created - it's newer than any existing target
         return true;
 
-    return lhs.time_.value() < rhs.time_.value();
+    return lhs.targetTime() < rhs.targetTime(); // Compare time of two existing targets
 }
 
 std::ostream& operator<<(std::ostream& out, Task const& task)
