@@ -131,20 +131,8 @@ If you built tests with `build.sh`/`build.bat` you can build tests from terminal
 If you built it manually you can build and run these tests manually too:
 ```shell
 cmake --build [Build dir] --target test
-```
-There's a problem: location of compiled binaries depends on Generator you used...\
-If it was **ninja** or some **Makefiles**, tests most likely located in `[Build dir]/gtest`\
-If it was **MSBuild** (default in Windows), they most likely located in `[Build dir]/gtest/[Build type]`
-(Build type by default is `DEBUG`)
-
-To launch tests:
-```shell
-# Ninja / Makefiles
-cd [Build dir]/gtest
-./test
-# MSBuild
-cd [Build dir]\gtest
-.\[Build type]\test
+cd build/gtest
+ctest
 ```
 
 ### basic-test.sh (Linux only)

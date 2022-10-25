@@ -6,5 +6,4 @@ fi
 
 [ -d "build" ] && [ ! -f "build/CMakeCache.txt" ] && rm -rf build
 cmake -DCMAKE_BUILD_TYPE=Release "$OPTIONS" -S . -B build &&
-  cmake --build build --target fake --config Release &&
-  echo "Done!" || echo "Cannot build fake :("
+  cmake --build build --target fake
