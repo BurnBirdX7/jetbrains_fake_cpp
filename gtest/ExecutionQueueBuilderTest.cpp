@@ -22,7 +22,7 @@ TEST(ExecutionQueueBuilderTest, BasicBuild) {
 }
 
 TEST(ExecutionQueueBuilderTest, BuildMultipleTasks) {
-    {   // compile -> build -> exec
+    {   // compile(2) -> build -> exec(1), size shouldn't change
         auto builder = ExecutionQueueBuilder(doc);
 
         builder.build("exec");
@@ -32,7 +32,7 @@ TEST(ExecutionQueueBuilderTest, BuildMultipleTasks) {
         EXPECT_EQ(builder.getExecutionQueue().size(), 3);
     }
 
-    {
+    {   // compile(1) -> build -> exec(2), size SHOULD change
         auto builder = ExecutionQueueBuilder(doc);
 
         builder.build("compile");
@@ -41,5 +41,45 @@ TEST(ExecutionQueueBuilderTest, BuildMultipleTasks) {
         builder.build("exec");
         EXPECT_EQ(builder.getExecutionQueue().size(), 3) << builder;
     }
-
 }
+
+using exec_queue = ExecutionQueueBuilder::exec_queue;
+
+std::optional<size_t> getIndex(exec_queue const& queue, std::string const& name) {
+    size_t counter = 0;
+    auto it = queue.begin();
+    while (it != queue.end()) {
+        if (it->get()->name() == name)
+            return counter;
+        ++it, ++counter;
+    }
+
+    return {};
+}
+
+TEST(ExecutionQueueBuilderTest, BuildDifferentBranches) {
+    auto builder = ExecutionQueueBuilder(doc);
+    auto const& queue = builder.getExecutionQueue();
+
+    builder.build("leaf2");
+    EXPECT_FALSE(builder.failed()) << builder;
+
+    auto n = queue.size();
+    builder.build("publish");
+    EXPECT_FALSE(builder.failed()) << builder;
+    EXPECT_EQ(queue.size(), n) << queue.size(); // Size not changed
+
+    auto leaf_n = getIndex(queue, "leaf2");
+    auto publ_n = getIndex(queue, "publish");
+    ASSERT_TRUE(leaf_n.has_value());
+    ASSERT_TRUE(publ_n.has_value());
+    EXPECT_LT(*publ_n, *leaf_n);
+
+    builder.build("leaf1");
+    EXPECT_FALSE(builder.failed()) << builder;
+    EXPECT_EQ(queue.size(), n + 1) << queue.size();
+
+    builder.build("exec");
+    EXPECT_EQ(queue.size(), n + 4) << queue.size() << '\n' << builder;
+}
+

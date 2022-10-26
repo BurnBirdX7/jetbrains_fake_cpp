@@ -1,15 +1,57 @@
 compile:
-  dependencies: "test2/main.cpp"
-  target: "test2_out/main.o"
-  run: "g++ -c test2/main.cpp -o test2_out/main.o"
+  dependencies: test2/main.cpp
+  target: main.o
+  run: g++ -c main.cpp -o main.o
 
 build:
   dependencies:
     - compile
-  target: "test2_out/main"
-  run: "g++ test2/main.o -o test2_out/main"
+  target: main
+  run: g++ main.o -o main
 
 exec:
   dependencies:
     - build
-  run: "./test2_out/main"
+  run: ./main
+
+# for "Build Different Branches" test:
+
+compile-lib-component1:
+  dependencies: test2/lib1.cpp
+  target: lib1.o
+  run: g++ -c lib1.cpp -o lib1.o
+
+compile-lib-component2:
+  dependencies:
+    - test2/lib2.cpp
+  target: lib2.o
+  run: g++ -c lib2.cpp -o lib2.o
+
+build-lib:
+  dependencies:
+    - compile-lib-component1
+    - compile-lib-component2
+  target: lib
+  run: g++ lib1.o lib2.o -o lib
+
+publish:
+  dependencies: build-lib
+  run: echo "That code makes no sense..."
+
+leaf1:
+  dependencies: publish
+  run: echo "Leaf 1!"
+
+leaf2:
+  dependencies:
+    - publish
+    - build-lib
+  run: echo "Leaf 2 :("
+
+# Scheme:
+# clc1 -----> build-lib -----> publish -\---> leaf1
+# clc2 -->/           \------------------\--> leaf2
+
+# publish should not appear before build-lib in execution queue
+#   when building the queue for leaf2
+
