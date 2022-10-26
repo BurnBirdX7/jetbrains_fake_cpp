@@ -7,41 +7,29 @@ on:
     branches: [ "master" ]
 
 env:
-  BUILD_TYPE: Release
   BUILD_DIR: ${{github.workspace}}/build
 
 jobs:
-  build-ubuntu:
-    runs-on: ubuntu-latest
+  matrix-build:
+    strategy:
+      matrix:
+        os: [ 'ubuntu-latest', 'windows-latest' ]
+        build_type: [ 'Release', 'Debug' ]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v3
 
       - name: Configure CMake
-        run: cmake -S . -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: cmake -S . -B ${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
-        run: cmake --build ${{env.BUILD_DIR}} --target fake test
+        run: cmake --build ${{ env.BUILD_DIR }} --config ${{ matrix.build_type }} --target fake test
 
       - name: Test
-        working-directory: ${{env.BUILD_DIR}}/gtest
-        run: ctest -C ${{env.BUILD_TYPE}}
+        working-directory: ${{ env.BUILD_DIR }}/gtest
+        run: ctest -C ${{ matrix.build_type }}
 
       - name: Test itself
-        run: ${{env.BUILD_DIR}}/fake run-tests
-
-  build-windows:
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Configure CMake
-        run: cmake -S . -B ${{env.BUILD_DIR}}
-
-      - name: Build
-        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target fake test
-
-      - name: Test
-        working-directory: ${{env.BUILD_DIR}}/gtest
-        run: ctest -C ${{env.BUILD_TYPE}}
+        run: ${{ env.BUILD_DIR }}/fake run-tests

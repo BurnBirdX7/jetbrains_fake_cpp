@@ -12,13 +12,13 @@ add_executable(fake src/main.cpp)
 
 # COMPILER SETUP
 if (MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
+    add_compile_options(/WX)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 else()
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-        set(CMAKE_CXX_FLAGS "-Wall -Werror -O0 -g -fsanitize=address")
+        add_compile_options(-Wall -Werror -O0 -g -fsanitize=address)
     else()
-        set(CMAKE_CXX_FLAGS "-Wall -Werror -O2")
+        add_compile_options(-Wall -Werror -O2)
     endif()
 endif()
 

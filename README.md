@@ -144,8 +144,6 @@ and not fails when executed with correct `fake.yaml`.
  * Cyclic dependency: checks if **fake** fails when called for different tasks.
 ## All with fake
 
-(Linux only, requires GCC)
-
 If you already have fake installed on your system you can do all of this with help of **fake**.\
 This repository has `fake.yaml` in its root and can be built with **fake**.
 
@@ -153,13 +151,15 @@ You still need all the other required software,
 it's just funny replacement for build and test scripts :( 
 
 Main tasks:
+ * `configure` - configures CMake
  * `build` - builds fake from sources
- * `run-tests` - runs Unit tests
- * `clean` - cleans build directory
+ * `build-tests` - builds test executable from sources
+ * `run-tests` - runs tests
+ * `clean` (*Linux only*) - cleans build directory
 
 Bonus:
- * `install` - installs **fake** in `/usr/local/bin` (requires permissions to access the folder)
- * `remove` - removes **fake** from said directory (also requires permissions)
+ * `install` (*Linux only*) - installs **fake** in `/usr/local/bin` (requires permissions to access the folder)
+ * `remove` (*Linux only*) - removes **fake** from said directory (also requires permissions)
  * `update` - pulls the latest version of this repository from git
 
 and other...
