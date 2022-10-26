@@ -17,7 +17,7 @@ public:
     using dep_list = std::list<std::string>;
 
     enum class Status {
-        UNKNOWN, UP_TO_DATE, NEEDS_UPDATING, ENQUEUED
+        UP_TO_DATE, NEEDS_UPDATING, ENQUEUED
     };
 
     explicit Task(std::string name);

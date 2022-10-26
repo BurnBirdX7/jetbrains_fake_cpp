@@ -37,7 +37,7 @@ void Task::setEnqueued(bool b)
 bool Task::evaluateFileDependency(std::string const& file_name)
 {
     if (!has_dependencies_)
-        throw std::runtime_error("This file doesn't have any dependencies...");
+        throw std::runtime_error("This task doesn't have any dependencies...");
 
     if (!std::filesystem::exists(file_name)) { // There's no such file...
         return false;
@@ -109,17 +109,16 @@ std::pair<Task::ptr, std::list<std::string>> Task::fromYaml(std::string const& n
     if (!node.IsMap())
         throw std::runtime_error("Target description should contain Map");
 
-    // WORK WITH OUR TASK:
     auto task = std::make_shared<Task>(name);
-
-    auto target = node[TARGET_KEYWORD];
-    if (target.IsScalar())
-        task->setTarget(target.as<std::string>());
 
     auto run_str = node[CMD_KEYWORD];
     if (!run_str.IsScalar())
         throw std::runtime_error("`run` property MUST be defined");
     task->setCmd(run_str.as<std::string>());
+
+    auto target = node[TARGET_KEYWORD];
+    if (target.IsScalar())
+        task->setTarget(target.as<std::string>());
 
     auto deps = node[DEPS_KEYWORD];
 

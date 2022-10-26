@@ -34,7 +34,7 @@ void ExecutionQueueBuilder::build(std::string const& task_name)
 
         unfoldStack(parent);
         if (stackContains(name)) { // O (log n)
-            addError(name, "Self-dependence");
+            addError(name, "Self-dependency");
             return; // Self-dependence stops processing
         }
 
@@ -71,7 +71,6 @@ void ExecutionQueueBuilder::build(std::string const& task_name)
     }
 
     unfoldStack({});
-    constructed_tasks_.clear();
 }
 
 int ExecutionQueueBuilder::execute(std::function<int (task_ptr)> const& executor)
