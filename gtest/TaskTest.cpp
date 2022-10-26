@@ -105,22 +105,17 @@ TEST(TaskClass, NoTargetStatus) {
 }
 
 TEST(TaskClass, NoDependenciesStatus) {
-    {
-        {   // Create and write
-            std::ofstream stream{"no_dependencies.out"};
-            ASSERT_TRUE(stream);
-            stream << "test";
-        }
-        auto [task, dep_list] = Task::fromYaml("no_dependencies", test1_doc);
-        ASSERT_EQ(task->status(), Task::Status::UP_TO_DATE);
-        std::filesystem::remove("no_dependencies.out");
+    {   // Create and write
+        std::ofstream stream{"no_dependencies.out"};
+        ASSERT_TRUE(stream);
+        stream << "test";
     }
+    auto task = Task::fromYaml("no_dependencies", test1_doc).first;
+    ASSERT_EQ(task->status(), Task::Status::UP_TO_DATE);
+    std::filesystem::remove("no_dependencies.out");
 
-    {
-        auto [task, dep_list] = Task::fromYaml("no_dependencies", test1_doc);
-        ASSERT_EQ(task->status(), Task::Status::NEEDS_UPDATING);
-    }
-
+    task = Task::fromYaml("no_dependencies", test1_doc).first; // Reload
+    ASSERT_EQ(task->status(), Task::Status::NEEDS_UPDATING);
 }
 
 TEST(TaskClass, EnqueuedStatus) {
@@ -150,10 +145,10 @@ TEST(TaskClass, DependencyEvaluation) {
 
     auto yaml_doc = YAML::LoadFile("test1.yaml");
 
-    auto [task    , _1] = Task::fromYaml("no_dependencies"      , yaml_doc);
-    auto [task_d1 , _2] = Task::fromYaml("one_dependency_scalar", yaml_doc);
-    auto [task_dl1, _3] = Task::fromYaml("one_dependency_list"  , yaml_doc);
-    auto [task_dl4, _4] = Task::fromYaml("four_dependencies"    , yaml_doc);
+    auto task     = Task::fromYaml("no_dependencies"      , yaml_doc).first;
+    auto task_d1  = Task::fromYaml("one_dependency_scalar", yaml_doc).first;
+    auto task_dl1 = Task::fromYaml("one_dependency_list"  , yaml_doc).first;
+    auto task_dl4 = Task::fromYaml("four_dependencies"    , yaml_doc).first;
 
     ASSERT_NO_THROW(dep_eval(task_d1, task));
     ASSERT_NO_THROW(dep_eval(task_dl1, task));

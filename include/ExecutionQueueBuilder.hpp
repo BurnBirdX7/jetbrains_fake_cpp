@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <functional>
+#include <optional>
 
 #include <yaml-cpp/yaml.h>
 
@@ -35,6 +36,9 @@ private:
     bool stackContains(std::string const& task_name) const;
     void addTask(std::string const& name); // O(1)
     void addError(std::string const& task_name, std::string const& msg); // O(1)
+
+    [[nodiscard]] std::optional<task_ptr> getTaskIfConstructed(std::string const& name) const;
+    [[nodiscard]] bool isTaskConstructed(std::string const& name) const;
 
     YAML::Node const& doc_;
 

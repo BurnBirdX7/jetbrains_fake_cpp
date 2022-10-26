@@ -1,15 +1,15 @@
 compile:
-  dependencies: main.cpp
-  target: main.o
-  run: g++ -c main.cpp -o main.o
+  dependencies: "test2/main.cpp"
+  target: "test2_out/main.o"
+  run: "g++ -c test2/main.cpp -o test2_out/main.o"
 
 build:
   dependencies:
     - compile
-  target: main
-  run: g++ main.o -o main
+  target: "test2_out/main"
+  run: "g++ test2/main.o -o test2_out/main"
 
 exec:
   dependencies:
     - build
-  run: ./main
+  run: "./test2_out/main"

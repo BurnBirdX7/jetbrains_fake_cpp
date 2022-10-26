@@ -13,18 +13,18 @@ if (NOT GTest_FOUND)
     FetchContent_MakeAvailable(GTest)
 endif()
 
-
-# TESTS
-
-set(TEST_YAML_FILES test1.yaml test2.yaml)
-foreach(file ${TEST_YAML_FILES})
+# COPY TO BINARIES
+set(FILES_TO_COPY test2 test1.yaml test2.yaml)
+foreach(file ${FILES_TO_COPY})
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${file}
             DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endforeach()
 
+# TESTS
+set(WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/gtest")
 
 enable_testing()
-set(TEST_SRC TaskTest.cpp BuilderTest.cpp)
+set(TEST_SRC TaskTest.cpp ExecutionQueueBuilderTest.cpp)
 add_executable(test ${TEST_SRC})
 target_link_libraries(test PUBLIC
         GTest::gtest_main

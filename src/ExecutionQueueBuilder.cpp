@@ -1,5 +1,6 @@
 #include "ExecutionQueueBuilder.hpp"
 
+#include <algorithm>
 #include <filesystem>
 
 ExecutionQueueBuilder::ExecutionQueueBuilder(YAML::Node const& doc)
@@ -8,6 +9,9 @@ ExecutionQueueBuilder::ExecutionQueueBuilder(YAML::Node const& doc)
 
 void ExecutionQueueBuilder::build(std::string const& task_name)
 {
+    if (isTaskConstructed(task_name))
+        return;
+
     task_ptr root_task{};
     Task::dep_list root_deps{};
 
@@ -38,9 +42,9 @@ void ExecutionQueueBuilder::build(std::string const& task_name)
             return; // Self-dependence stops processing
         }
 
-        auto already_constructed = constructed_tasks_.find(name);
-        if (already_constructed != constructed_tasks_.end()) {
-            dependency_stack_.push_front(already_constructed->second);
+        auto already_constructed = getTaskIfConstructed(name);
+        if (already_constructed) {
+            dependency_stack_.push_front(*already_constructed);
             continue;
         }
 
@@ -187,5 +191,18 @@ std::ostream& operator<<(std::ostream& out, ExecutionQueueBuilder const& builder
 void ExecutionQueueBuilder::addError(std::string const& task_name, std::string const& msg)
 {
     errors_.emplace_back('"' + task_name + "\": " + msg);
+}
+
+std::optional<Task::ptr> ExecutionQueueBuilder::getTaskIfConstructed(const std::string& name) const {
+
+    auto it = constructed_tasks_.find(name);
+    if (it == constructed_tasks_.end())
+        return std::nullopt;
+
+    return it->second;
+}
+
+bool ExecutionQueueBuilder::isTaskConstructed(std::string const& name) const {
+    return constructed_tasks_.find(name) != constructed_tasks_.end();
 }
 
