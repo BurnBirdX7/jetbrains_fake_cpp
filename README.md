@@ -15,7 +15,7 @@ Brother project of [fake-kotlin](https://github.com/BurnBirdX7/jetbrains_fake_ko
 
 ## Use
 
-Execute `fake <task> [tasks...]` in directory with `fake.yaml`.
+Execute `fake <task>` in directory with `fake.yaml`.
 
 `fake.yaml` contains description of tasks in following format:
  * task-name
@@ -27,12 +27,17 @@ Execute `fake <task> [tasks...]` in directory with `fake.yaml`.
     If **target** isn't specified, task is executed unconditionally
 
 Some details:
- * If a task listed in dependencies isn't in `fake.yaml`, **fake** will try to find a file with the same name
+ * *fake* fails if *malformed* task is met while processing dependencies of the `<task>`
+   * A task considered *malformed* when `run` property is undefined or any property is defined incorrectly.
+   * **fake** fails immediately if the `<task>` is *malformed*.
+   * If one of the dependencies is *malformed*, **fake** continues processing of other dependencies, but fails at the end.
+   * *(Note: **fake-kotlin** behaves differently)*
+ * If dependency is not defined as a task in `fake.yaml`, **fake** will try to find a file with the same name
      * If such file can't be found, **fake** remembers this as an error and continues processing.
-       **fake** will fail in the end.\
-       This behaviour allows to detect multiple missing dependencies with one execution of **fake**.
- * If there's a cyclic dependency (`task1 -> task2 -> task3 -> task1`). **fake** immediately fails
- * When **fake** fails, list of occurred errors is printed.
+       **fake** will fail in the end.
+ * If there's a cyclic dependency (`task1 -> task2 -> task3 -> task1`), **fake** immediately fails.
+ * When **fake** fails, list of occurred errors is printed
+   * all detected *malformed* tasks and non-existent dependencies are listed.
 
 Example:
 ```yaml
