@@ -27,10 +27,10 @@ Execute `fake <task> [tasks...]` in directory with `fake.yaml`.
     If **target** isn't specified, task is executed unconditionally
 
 Some details:
- * If task listed in dependencies isn't in `fake.yaml`, **fake** will try to find file with the same name
-   * If file cannot be found, **fake** remembers this as error and continues processing of the dependencies.
-     **fake** will fail at the end.\
-     This behaviour allows to detect multiple missing dependencies with one execution of **fake**.
+ * If a task listed in dependencies isn't in `fake.yaml`, **fake** will try to find a file with the same name
+     * If such file can't be found, **fake** remembers this as an error and continues processing.
+       **fake** will fail in the end.\
+       This behaviour allows to detect multiple missing dependencies with one execution of **fake**.
  * If there's a cyclic dependency (`task1 -> task2 -> task3 -> task1`). **fake** immediately fails
  * When **fake** fails, list of occurred errors is printed.
 
@@ -55,15 +55,28 @@ exec:
 ```
 
 ```shell
-# Shell
-~/my_project$ fake exec  # Will execute all tasks
-~/my_project$ fake exec  # Will execute only `exec`
+~/my_project$ fake exec   # Executes all tasks
+ > [compile]: g++ -c main.cpp -o main.o
+ > [build]: g++ main.o -o main
+ > [exec]: ./main
+Finished!
 
-~/my_project$ rm ./main
-~/my_project$ fake exec  # Will execute `compile` and `exec`
+~/my_project$ fake exec   # Executes only 'exec'
+ > [exec]: ./main
+Finished!
 
-~/my_project$ rm ./main.o
-~/my_project$ fake exec  # Will execute all tasks
+~/my_project$ rm ./main   # Delete target of 'build'
+~/my_project$ fake exec   # Executes 'compile' and 'exec'
+ > [build]: g++ main.o -o main
+ > [exec]: ./main
+Finished!
+
+~/my_project$ rm ./main.o # Delete target of 'compile'
+~/my_project$ fake exec   # Executes all tasks
+ > [compile]: g++ -c main.cpp -o main.o
+ > [build]: g++ main.o -o main
+ > [exec]: ./main
+Finished!
 ```
 
 
