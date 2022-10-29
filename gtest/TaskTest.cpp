@@ -80,6 +80,8 @@ TEST(TaskClass, TaskFromYAML) {
     ASSERT_THROW(Task::fromYaml("incorrect_task1", yaml_doc), std::runtime_error);
     ASSERT_THROW(Task::fromYaml("incorrect_task2", yaml_doc), std::runtime_error);
     ASSERT_THROW(Task::fromYaml("incorrect_task3", yaml_doc), std::runtime_error);
+    ASSERT_THROW(Task::fromYaml("incorrect_task4", yaml_doc), std::runtime_error);
+    ASSERT_THROW(Task::fromYaml("incorrect_task5", yaml_doc), std::runtime_error);
 
     ASSERT_THROW(Task::fromYaml("no_run", yaml_doc), std::runtime_error);
 

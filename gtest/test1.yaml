@@ -7,6 +7,16 @@ incorrect_task2:
 
 incorrect_task3: just some string...
 
+incorrect_task4:
+  run:
+    - hello
+
+incorrect_task5:
+  run: echo "Hello"
+  dependencies:
+    key1: value1
+    key2: value2
+
 no_run:
   random: 1234
   dependencies: some_task

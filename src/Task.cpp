@@ -103,17 +103,20 @@ Task::time_type const& Task::targetTime() const
 std::pair<Task::ptr, std::list<std::string>> Task::fromYaml(std::string const& name, YAML::Node const& doc)
 {
     auto node = doc[name];
-    if (!node.IsDefined())
+    if (!node.IsDefined()) {
         throw std::runtime_error("There's no task with this name");
+    }
 
-    if (!node.IsMap())
+    if (!node.IsMap()) {
         throw std::runtime_error("Target description should contain Map");
+    }
 
     auto task = std::make_shared<Task>(name);
 
     auto run_str = node[CMD_KEYWORD];
-    if (!run_str.IsScalar())
+    if (!run_str.IsScalar()) {
         throw std::runtime_error("`run` property MUST be defined");
+    }
     task->setCmd(run_str.as<std::string>());
 
     auto target = node[TARGET_KEYWORD];
@@ -121,6 +124,10 @@ std::pair<Task::ptr, std::list<std::string>> Task::fromYaml(std::string const& n
         task->setTarget(target.as<std::string>());
 
     auto deps = node[DEPS_KEYWORD];
+
+    if (deps.IsMap()) {
+        throw std::runtime_error("`dependencies` field MUST contain sequence of strings or string");
+    }
 
     if (deps.IsScalar()) {
         task->has_dependencies_ = true;
