@@ -28,11 +28,11 @@ build-tests:
   run: cmake --build build --target test --config Release
 
 run-tests:
-  dependencies: build-tests
+  dependencies: [ build-tests ]
   run: cd build/gtest && ctest
 
 install: # Linux only
-  dependencies: build
+  dependencies: [ build ]
   target: /usr/local/bin/fake
   run: sudo cp -f build/fake /usr/local/bin
 
@@ -47,13 +47,13 @@ clean: # Linux only
 
 # Additional testing tasks
 cyclic1: # Should fail as self-dependent
-  dependencies: cyclic2
+  dependencies: [ cyclic2 ]
   run: echo "Hello "
 
 cyclic2: # Should fail as self-dependent
-  dependencies: cyclic1
+  dependencies: [ cyclic1 ]
   run: echo "world! "
 
 cyclic3: # Should fail saying that cyclic1 is self-dependent
-  dependencies: cyclic1
+  dependencies: [ cyclic1 ]
   run: echo "@_@ < 'im dizzy'"

@@ -105,17 +105,18 @@ TEST(TaskClass, NoTargetStatus) {
 }
 
 TEST(TaskClass, NoDependenciesStatus) {
+    auto task = Task::fromYaml("no_dependencies", test1_doc).first;
+    ASSERT_EQ(task->status(), Task::Status::NEEDS_UPDATING);
+
     {   // Create and write
         std::ofstream stream{"no_dependencies.out"};
         ASSERT_TRUE(stream);
         stream << "test";
     }
-    auto task = Task::fromYaml("no_dependencies", test1_doc).first;
+    task = Task::fromYaml("no_dependencies", test1_doc).first; // Reload
     ASSERT_EQ(task->status(), Task::Status::UP_TO_DATE);
     std::filesystem::remove("no_dependencies.out");
 
-    task = Task::fromYaml("no_dependencies", test1_doc).first; // Reload
-    ASSERT_EQ(task->status(), Task::Status::NEEDS_UPDATING);
 }
 
 TEST(TaskClass, EnqueuedStatus) {

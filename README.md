@@ -2,6 +2,8 @@
 
 Fake build system
 
+Brother project of [fake-kotlin](https://github.com/BurnBirdX7/jetbrains_fake_kotlin).
+
 ## Navigate
  * [Using](#Using)
  * [Building](#Building)
@@ -11,9 +13,9 @@ Fake build system
  * [All of this but with **fake**](#All-with-fake)
    * Build, test, install, etc.
 
-## Using
+## Use
 
-Execute `fake <task>` in directory with `fake.yaml`.
+Execute `fake <task> [tasks...]` in directory with `fake.yaml`.
 
 `fake.yaml` contains description of tasks in following format:
  * task-name
@@ -65,7 +67,7 @@ exec:
 ```
 
 
-## Building
+## Build
 **Requirements**:
 * CMake 3.16+
     * Build tool with [CMake generator](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html) (Make, Ninja, etc.)
@@ -112,7 +114,7 @@ cmake -S . -B [Build dir] -G [Generator] -DCMAKE_BUILD_TYPE=[Build type] [Your o
 cmake --build [Build dir] --target fake --config [Build type]
 ```
 
-## Unit testing
+## Test
 
 Unit tests are located in `gtest` directory.
 
@@ -149,6 +151,8 @@ This repository has `fake.yaml` in its root and can be built with **fake**.
 
 You still need all the other required software,
 it's just funny replacement for build and test scripts :( 
+
+You also can use [fake-kotlin](https://github.com/BurnBirdX7/jetbrains_fake_kotlin) to build this project
 
 Main tasks:
  * `configure` - configures CMake

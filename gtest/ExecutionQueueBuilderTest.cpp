@@ -84,6 +84,38 @@ TEST(ExecutionQueueBuilderTest, BuildDifferentBranches) {
     EXPECT_EQ(queue.size(), n + 4) << queue.size() << '\n' << builder;
 }
 
+TEST(ExecutionQueueBuilderTest, ExecuteOkTask) {
+    auto builder = ExecutionQueueBuilder(doc);
+    builder.build("exec");
+
+    size_t count = 0;
+
+    auto executor = [&count](Task::ptr const& task) {
+        // Count executions, do not print additional info...
+        ++count;
+        return std::system(task->cmd().c_str());
+    };
+
+    auto ret = builder.execute(executor);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(count, 3);
+}
+
+TEST(ExecutionQueueBuilderTest, ExecuteFailingTask) {
+    auto builder = ExecutionQueueBuilder(doc);
+    builder.build("failing_exec");
+
+    size_t count = 0;
+
+    auto executor = [&count](Task::ptr const& task) {
+        ++count;
+        return std::system(task->cmd().c_str());
+    };
+
+    auto ret = builder.execute(executor);
+    EXPECT_NE(ret, 0);
+    EXPECT_EQ(count, 3);
+}
 
 void emitTask(YAML::Emitter& emitter,
               std::string const& name,
@@ -131,38 +163,6 @@ std::pair<size_t, std::string> generateLongDoc(size_t n, std::string const& file
     file << emitter.c_str();
 
     return {n * 3 + 1, prev_task};
-}
-
-TEST(ExecutionQueueBuilderTest, ExecuteOkTask) {
-    auto builder = ExecutionQueueBuilder(doc);
-    builder.build("exec");
-
-    size_t count = 0;
-
-    auto executor = [&count](Task::ptr const& task) {
-        ++count;
-        return std::system(task->cmd().c_str());
-    };
-
-    auto ret = builder.execute(executor);
-    EXPECT_EQ(ret, 0);
-    EXPECT_EQ(count, 3);
-}
-
-TEST(ExecutionQueueBuilderTest, ExecuteFailingTask) {
-    auto builder = ExecutionQueueBuilder(doc);
-    builder.build("failing_exec");
-
-    size_t count = 0;
-
-    auto executor = [&count](Task::ptr const& task) {
-        ++count;
-        return std::system(task->cmd().c_str());
-    };
-
-    auto ret = builder.execute(executor);
-    EXPECT_NE(ret, 0);
-    EXPECT_EQ(count, 3);
 }
 
 TEST(ExecutionQueueBuilderTest, BuildFromSuperlongFile) {
