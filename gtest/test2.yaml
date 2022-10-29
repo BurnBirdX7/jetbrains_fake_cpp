@@ -1,18 +1,23 @@
 compile:
   dependencies: test2/main.cpp
   target: main.o
-  run: g++ -c main.cpp -o main.o
+  run: echo "Hello, "
 
 build:
   dependencies:
     - compile
   target: main
-  run: g++ main.o -o main
+  run: echo "world"
 
 exec:
   dependencies:
     - build
-  run: ./main
+  run: echo "!!!"
+
+failing_exec:
+  dependencies:
+    - build
+  run: exit 4
 
 # for "Build Different Branches" test:
 
@@ -49,8 +54,9 @@ leaf2:
   run: echo "Leaf 2 :("
 
 # Scheme:
-# clc1 -----> build-lib -----> publish -\---> leaf1
-# clc2 -->/           \------------------\--> leaf2
+# clc1 -----> build-lib ----> publish -->---> leaf1
+#            /        \                  \
+# clc2 ---->/          \------------------>--> leaf2
 
 # publish should not appear before build-lib in execution queue
 #   when building the queue for leaf2
