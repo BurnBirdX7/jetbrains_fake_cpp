@@ -5,11 +5,11 @@ Fake build system
 Brother project of [fake-kotlin](https://github.com/BurnBirdX7/jetbrains_fake_kotlin).
 
 ## Navigate
- * [Using](#Using)
- * [Building](#Building)
-   * [Standard](#Building)
+ * [Use](#Use)
+ * [Build](#Build)
+   * [Standard](#Build)
    * [CMake Toolchain](#CMake-Toolchain)
- * [Unit-testing](#Unit-testing)
+ * [Test](#Test)
  * [All of this but with **fake**](#All-with-fake)
    * Build, test, install, etc.
 
@@ -103,7 +103,9 @@ You can build this project with your IDE, or from terminal:
   .\build.bat
   ```
 
-If `yaml-cpp` and/or `googletest` can't be found, they are fetched from GitHub.
+If `yaml-cpp` or `googletest` can't be found, they are fetched from GitHub.
+
+Executable binary will be placed in `build` directory on Linux and in `build/Release` directory on Windows
 
 ### CMake Toolchain
 If you have vcpkg (or maybe other package manager that can be integrated with CMake this way)
@@ -146,7 +148,7 @@ If you built tests with `build.sh`/`build.bat` you can build tests from terminal
 If you built it manually you can build and run these tests manually too:
 ```shell
 cmake --build [Build dir] --target test
-cd build/gtest
+cd [Build dir]/gtest
 ctest
 ```
 
@@ -157,9 +159,10 @@ Executes only 2 tests:
  * Basic: checks if program fails when there's no `fake.yaml`, there's no `<task>` argument,
 and not fails when executed with correct `fake.yaml`.
  * Cyclic dependency: checks if **fake** fails when called for different tasks.
+
 ## All with fake
 
-If you already have fake installed on your system you can do all of this with help of **fake**.\
+If you already have **fake** installed on your system you can do all of this with help of **fake**.\
 This repository has `fake.yaml` in its root and can be built with **fake**.
 
 You still need all the other required software,
